@@ -1,0 +1,39 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/eslint": "^1.8.0",
+    "@nuxt/fonts": "^0.11.4",
+    "@nuxt/icon": "^1.15.0",
+    "@nuxt/image": "^1.11.0",
+    "@nuxt/scripts": "^0.11.10",
+    "@nuxt/test-utils": "^3.19.2",
+    "@vueuse/core": "^13.6.0",
+    "autonumeric": "^4.10.8",
+    "cropperjs": "^2.0.1",
+    "datatables.net-bs5": "^2.3.2",
+    "datatables.net-vue3": "^3.0.4",
+    "eslint": "^9.32.0",
+    "flatpickr": "^4.6.13",
+    "litepicker": "^2.0.12",
+    "nuxt": "^4.0.1",
+    "nuxt-auth-utils": "^0.5.23",
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1",
+    "vue3-google-signin": "^2.1.1",
+    "vue3-lottie": "^3.3.1"
+  },
+  "devDependencies": {
+    "@iconify-json/tabler": "^1.2.20",
+    "@pinia/nuxt": "^0.11.2",
+    "sass-embedded": "^1.90.0"
+  }
+}

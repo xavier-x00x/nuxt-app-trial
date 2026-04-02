@@ -1,0 +1,30 @@
+export default defineNuxtRouteMiddleware(async (to) => {
+  const { user, fetchUser, checkAccess } = useAuth();
+  const { setFlash } = useFlash();
+
+  const paths = ["/sign-in", "/sign-up"];
+  if (paths.includes(to.path)) return;
+
+  if (!user.value) {
+    // console.log("fetch user");
+    await fetchUser();
+  }
+  if (!user.value) {
+    return navigateTo("/sign-in");
+  }
+
+  // Panggil backend untuk cek akses
+  const res = await checkAccess(to.path);
+  if (!res) {
+    if (to.path === "/") {
+      setFlash("Anda belum memiliki akses", "warning");
+      return navigateTo("/sign-in");
+    }
+    setFlash(
+      `(404) Anda tidak memiliki akses ke halaman ${to.path}`,
+      "warning"
+    );
+    // return;
+    return navigateTo("/");
+  }
+});
