@@ -168,6 +168,9 @@ docker compose up
 # Menjalankan dengan build ulang image
 docker compose up --build
 
+# Menjalankan services dengan nama tertentu
+docker compose up <service_name> <service_name> --build
+
 # Menghentikan services
 docker compose down
 

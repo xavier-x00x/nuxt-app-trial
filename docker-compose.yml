@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    container_name: nuxt-app-dev
+    image: nuxt-app:1.0.0
     volumes:
       - .:/app
       - /app/node_modules

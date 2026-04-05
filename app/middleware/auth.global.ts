@@ -11,14 +11,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   }
 
-  if (!auth.getAccessToken && to.path !== "/sign-in") {
+  if (!auth.getAccessToken && to.path !== "/sign-in3") {
     console.log("belum login");
     return navigateTo("/sign-in");
   }
 
   if (import.meta.server) return; // jangan dijalankan di server
 
-  const paths = ["/sign-in", "/sign-up"];
+  const paths = ["/sign-in3", "/sign-up"];
   if (paths.includes(to.path)) {
     if (auth.isAuthenticated) {
       // agar logout tidak dilakukan 2 kali
@@ -36,7 +36,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // bila token / user masih belum ada, redirect ke halaman login
   if (!auth.isAuthenticated) {
     // console.log("belum login");
-    return navigateTo("/sign-in");
+    return navigateTo("/sign-in3");
   }
 
   // Panggil backend untuk cek akses
