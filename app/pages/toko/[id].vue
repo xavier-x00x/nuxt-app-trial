@@ -1,0 +1,151 @@
+<script setup lang="ts">
+const route = useRoute();
+const { setFlash } = useFlash();
+const config = useRuntimeConfig();
+
+const id = computed(() => String(route.params.id));
+const title = computed(() => id.value === "new" ? "Create Store" : "Edit Store");
+useHead({ title });
+
+interface Store {
+  id: number;
+  code: string;
+  name: string;
+  address: string;
+  phone: string;
+  email: string;
+  is_active: boolean;
+}
+
+interface StoreResponse {
+  data: Store;
+  message: string;
+}
+
+const dataForm = ref<Store>({
+  id: 0,
+  code: "",
+  name: "",
+  address: "",
+  phone: "",
+  email: "",
+  is_active: false,
+});
+
+if (id.value !== "new") {
+  const { data: storeData, error } = await useAsyncData<Store>(
+    `store-${id.value}`,
+    async () => {
+      const response = await $fetch<StoreResponse>(`${config.public.apiUrl}/stores/${id.value}`, {
+        headers: { Authorization: `Bearer ${useAuthStore().accessToken}` },
+      });
+      return response.data;
+    }
+  );
+
+  if (error.value || !storeData.value) {
+    setFlash("Data toko tidak ditemukan", "error");
+    navigateTo("/toko");
+  } else {
+    dataForm.value = storeData.value;
+  }
+}
+
+const form = ref<HTMLFormElement>();
+const { loading, success, errors, submitForm } = useForm();
+
+const submitUrl = computed(() =>
+  id.value === "new"
+    ? `${config.public.apiUrl}/stores`
+    : `${config.public.apiUrl}/stores/${id.value}`
+);
+const submitMethod = computed(() => (id.value === "new" ? "POST" : "PUT"));
+
+const onSubmit = async () => {
+  await submitForm(submitUrl.value, {
+    method: submitMethod.value,
+    body: dataForm.value,
+  });
+
+  if (success.value) {
+    navigateTo("/toko");
+  }
+};
+</script>
+
+<template>
+  <div>
+    <PageHeader :title="title" icon="i-tabler:package">
+      <ui-button-back to="/toko" />
+      <ui-button-save :loading="loading" :form="form" @save="form?.requestSubmit()" />
+    </PageHeader>
+    <PageBody>
+      <form ref="form" autocomplete="off" novalidate @submit.prevent="onSubmit">
+        <div class="row justify-content-center">
+          <div class="col-xl-8 col-md-8 col-sm-12">
+            <ui-input2
+              v-model="dataForm.code"
+              label="Code"
+              type="text"
+              placeholder="Input store code"
+              :error="errors.code"
+            />
+            <ui-input2
+              v-model="dataForm.name"
+              label="Name"
+              type="text"
+              placeholder="Input store name"
+              :error="errors.name"
+            />
+            <ui-textarea
+              v-model="dataForm.address"
+              label="Address"
+              placeholder="Input address"
+              :error="errors.address"
+            />
+            <ui-input2
+              v-model="dataForm.phone"
+              label="Phone"
+              type="text"
+              placeholder="Input phone number"
+              :error="errors.phone"
+            />
+            <ui-input2
+              v-model="dataForm.email"
+              label="Email"
+              type="email"
+              placeholder="Input email"
+              :error="errors.email"
+            />
+            <div class="mb-3">
+              <label class="form-label">Status</label>
+              <div class="form-selectgroup">
+                <label class="form-selectgroup-item">
+                  <input
+                    v-model="dataForm.is_active"
+                    type="radio"
+                    name="is_active"
+                    :value="true"
+                    class="form-selectgroup-input"
+                  />
+                  <span class="form-selectgroup-label">Active</span>
+                </label>
+                <label class="form-selectgroup-item">
+                  <input
+                    v-model="dataForm.is_active"
+                    type="radio"
+                    name="is_active"
+                    :value="false"
+                    class="form-selectgroup-input"
+                  />
+                  <span class="form-selectgroup-label">Inactive</span>
+                </label>
+              </div>
+              <span class="text-danger error-text" v-text="errors.is_active"></span>
+            </div>
+          </div>
+        </div>
+      </form>
+    </PageBody>
+  </div>
+</template>

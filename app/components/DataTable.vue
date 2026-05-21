@@ -34,8 +34,13 @@ const loadMoreTrigger = ref<HTMLElement | null>(null);
 
 interface ListResponse<T> {
   data: T[];
-  total: number;
-  total_filtered: number;
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    total_filtered: number;
+    last_page: number;
+  };
 }
 
 async function loadData() {
@@ -43,6 +48,7 @@ async function loadData() {
   loading.value = true;
   try {
     const res = await $fetch<ListResponse<T>>(props.apiUrl, {
+      headers: { Authorization: `Bearer ${useAuthStore().accessToken}` },
       params: {
         search: debouncedSearch.value,
         page: rows.value.length === 0 ? 1 : page.value, // agar data di load pertama kali, page harus 1
@@ -55,8 +61,8 @@ async function loadData() {
       hasMore.value = false;
     }
     rows.value.push(...res.data);
-    total.value = res.total;
-    total_filtered.value = res.total_filtered;
+    total.value = res.meta.total;
+    total_filtered.value = res.meta.total_filtered;
   } catch (err) {
     console.error(err);
   } finally {

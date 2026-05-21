@@ -9,6 +9,18 @@ const { toastEl } = useToast();
 // defineExpose({ show });
 
 const { flashMessage, flashType, flashVisible } = useFlash();
+
+const typeClassesMap = {
+  error: "text-bg-danger",
+  success: "text-bg-success",
+  info: "text-bg-info",
+  warning: "text-bg-warning",
+};
+
+const headerClass = computed(() => {
+  return typeClassesMap[flashType.value] || "";
+});
+
 </script>
 
 <template>
@@ -21,7 +33,7 @@ const { flashMessage, flashType, flashVisible } = useFlash();
       aria-live="assertive"
       aria-atomic="true"
     >
-      <div class="toast-header">
+      <div class="toast-header" :class="headerClass">
         <strong class="me-auto" v-text="flashType"></strong>
         <button
           type="button"
@@ -30,7 +42,7 @@ const { flashMessage, flashType, flashVisible } = useFlash();
           @click="flashVisible = false"
         ></button>
       </div>
-      <div class="toast-body" v-html="flashMessage"></div>
+      <div class="toast-body" v-text="flashMessage"></div>
     </div>
   </div>
 </template>

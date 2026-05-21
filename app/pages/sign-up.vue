@@ -8,9 +8,7 @@ definePageMeta({
   layout: "auth",
 });
 
-useHead({
-  title: title,
-});
+useHead({ title });
 
 const toastRef = ref();
 
@@ -62,6 +60,11 @@ const onSubmit = async () => {
     // setFlash(error?.response._data.error, "warning");
   }
 };
+
+onMounted(() => {
+  const firstInput = document.querySelector<HTMLInputElement>("input");
+  firstInput?.focus();
+});
 </script>
 <template>
   <div class="container-tight">
@@ -89,6 +92,7 @@ const onSubmit = async () => {
               type="text"
               class="form-control"
               placeholder="Enter name"
+              autofocus
             />
             <span
               v-if="errors.Name"

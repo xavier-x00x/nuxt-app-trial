@@ -21,7 +21,6 @@
     "cropperjs": "^2.1.0",
     "datatables.net-bs5": "^2.3.7",
     "datatables.net-vue3": "^3.0.4",
-    "eslint": "^9.39.4",
     "flatpickr": "^4.6.13",
     "litepicker": "^2.0.12",
     "nuxt": "^4.4.2",
@@ -32,8 +31,22 @@
     "vue3-lottie": "^3.3.1"
   },
   "devDependencies": {
+    "@iconify-json/ri": "^1.2.10",
     "@iconify-json/tabler": "^1.2.33",
     "@pinia/nuxt": "^0.11.3",
-    "sass-embedded": "^1.99.0"
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-vue": "^10.8.0",
+    "sass-embedded": "^1.99.0",
+    "sharp": "^0.34.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }

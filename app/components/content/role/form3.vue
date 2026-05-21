@@ -3,11 +3,10 @@ interface Props {
   title: string;
   isEdit?: boolean;
   id?: number;
-}
-
-interface Role {
-  name: string;
-  permissions: string[];
+  modelValue?: {
+    name: string;
+    permissions: string[];
+  };
 }
 
 interface Permission {
@@ -16,12 +15,6 @@ interface Permission {
   name: string;
 }
 
-interface RoleResponse {
-  data: Role;
-  error?: string;
-}
-
-// List Permission
 interface ListResponse<T> {
   data: T[];
   total: number;
@@ -31,60 +24,48 @@ interface ListResponse<T> {
 const props = defineProps<Props>();
 const form = ref<HTMLFormElement>();
 const config = useRuntimeConfig();
-const { setFlash } = useFlash();
-const dataForm = ref<Role>({
-  name: "",
-  permissions: [],
+const authStore = useAuthStore();
+
+const localForm = ref({
+  name: props.modelValue?.name ?? "",
+  permissions: props.modelValue?.permissions ?? [],
 });
 
-const permissionList = ref<Permission[]>([]);
-
-const { data : permissions, error, refresh } = await useApiFetch<ListResponse<Permission>>(
-  `/permissions`,
-  {
-    params: {
-      limit: 9999,
-      order_column: "name",
-      order_dir: "asc",
-    },
+watch(
+  () => props.modelValue,
+  (val) => {
+    localForm.value = { name: val?.name ?? "", permissions: val?.permissions ?? [] };
   },
+  { immediate: true, deep: true }
 );
 
-watch(permissions, (val) => {
-  if (permissions.value) {
-    permissionList.value = permissions.value.data;
-  } else {
-    refresh();
+const permissionLoadError = ref<string | null>(null);
+const permissionList = ref<Permission[]>([]);
+
+async function loadPermissions() {
+  permissionLoadError.value = null;
+  try {
+    const res = await $fetch<ListResponse<Permission>>(
+      `${config.public.apiUrl}/permissions`,
+      {
+        headers: { Authorization: `Bearer ${authStore.accessToken}` },
+        params: {
+          limit: 9999,
+          order_column: "name",
+          order_dir: "asc",
+        },
+      }
+    );
+    permissionList.value = res.data;
+  } catch (err) {
+    permissionLoadError.value = "Gagal memuat permissions.";
+    console.error("Gagal load permissions:", err);
   }
-}, { immediate: true });
-
-if (props.id) {
-  const { data : roleResponse, error: roleError, status, refresh: refreshRole, pending } = await useApiFetch<RoleResponse>(
-    `/roles/${props.id}`
-  );
-
-  watchEffect(() => {
-    if (roleResponse.value) {
-      dataForm.value = roleResponse.value.data
-    } else {
-      if (roleError.value?.statusCode === 500) {
-        refreshRole();
-      }
-      
-      if (roleError.value) {
-        const statusCode = roleError.value.statusCode;
-        const message = roleError.value.data?.message || "Unknown error";
-
-        if (statusCode === 404) {
-          setFlash(`Error ${statusCode} : ${message}`, "error");
-          navigateTo("/role");
-        } else if (pending.value === false) {
-          setFlash(`Error ${statusCode} : ${message}`, "error");
-        }
-      }
-    }
-  });
 }
+
+onMounted(() => {
+  loadPermissions();
+});
 
 const EXCLUDED_PATTERNS = ["index", "sign-in", "sign-up", "sign-out"] as const;
 const HAS_DIGIT = /\d/;
@@ -118,7 +99,7 @@ const { loading, success, errors, submitForm } = useForm();
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {
     method: submitMethod.value,
-    body: dataForm.value,
+    body: localForm.value,
   });
 
   if (success.value) {
@@ -161,7 +142,7 @@ const onSubmit = async () => {
         <div class="row justify-content-center">
           <div class="col-xl-8 col-md-8 col-sm-12">
             <ui-input
-              v-model="dataForm.name"
+              v-model="localForm.name"
               label="Role Name"
               type="text"
               placeholder="Input Role"
@@ -170,7 +151,10 @@ const onSubmit = async () => {
             />
             <div class="mb-3 mt-4">
               <label class="form-label">Permission</label>
-              <div v-if="permissionList.length === 0" class="text-muted">
+              <div v-if="permissionLoadError" class="alert alert-danger">
+                {{ permissionLoadError }}
+              </div>
+              <div v-else-if="permissionList.length === 0" class="text-muted">
                 Tidak ada permission tersedia.
               </div>
               <div v-else class="row">
@@ -188,7 +172,7 @@ const onSubmit = async () => {
                     class="col-xl-3 col-md-6 col-sm-12 mb-2"
                   >
                     <input
-                      v-model="dataForm.permissions"
+                      v-model="localForm.permissions"
                       type="checkbox"
                       :value="row.name"
                       class="form-selectgroup-input"

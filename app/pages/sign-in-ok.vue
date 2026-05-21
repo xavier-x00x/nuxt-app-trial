@@ -6,9 +6,7 @@ definePageMeta({
   layout: "auth",
 });
 
-useHead({
-  title: title,
-});
+useHead({ title });
 
 const dataForm = reactive({
   email: "",

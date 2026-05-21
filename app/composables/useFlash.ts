@@ -12,11 +12,12 @@ export function useFlash() {
 
     console.log(message);
 
-    if (type === "error" || type === "warning") return;
-    // auto clear setelah 3 detik
+    let timeout = 5000; // 5 detik
+    if (type === "error" || type === "warning") timeout = 60000; // 1 menit untuk error dan warning
+    // auto clear
     setTimeout(() => {
       flashVisible.value = false;
-    }, 3000);
+    }, timeout);
   };
 
   return {

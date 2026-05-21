@@ -1,5 +1,12 @@
 <script setup lang="ts">
 const { confirmDelete } = useConfirmDelete();
+
+const handleDelete = () => {
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+  confirmDelete();
+};
 </script>
 
 <template>
@@ -47,8 +54,7 @@ const { confirmDelete } = useConfirmDelete();
                 <a
                   href="#"
                   class="btn btn-danger w-100 rounded-1"
-                  data-bs-dismiss="modal"
-                  @click="confirmDelete"
+                  @click.prevent="handleDelete"
                 >
                   Delete
                 </a>

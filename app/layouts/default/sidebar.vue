@@ -2,31 +2,6 @@
 <!-- eslint-disable vue/html-self-closing -->
 <script setup lang="ts">
 const auth = useAuthStore();
-
-const menu = ref<any>(useCookie("menu") || []);
-
-if (auth.isAuthenticated) {
-  const { data } = await useApiFetch<any>("api/menu", {
-    lazy: true, // Non-blocking request
-    server: false,
-  });
-
-  watchEffect(() => {
-    if (data.value) {
-      menu.value = data.value.data.map((item: any) => ({
-        title: item.title,
-        icon: item.icon,
-        to: item.to,
-      }));
-
-      useCookie("menu", {
-        default: () => JSON.stringify(menu.value),
-        path: "/",
-        maxAge: 60 * 60 * 24 * 30 * 6, // 6 bulan
-      });
-    }
-  });
-}
 </script>
 
 <template>
@@ -100,10 +75,10 @@ if (auth.isAuthenticated) {
       </div>
       <div id="sidebar-menu" class="collapse navbar-collapse">
         <ul class="navbar-nav pt-lg-3">
-          <template v-for="item in menu" :key="item.title">
+          <template v-for="item in auth.menus" :key="item.title">
             <UiNavItem :to="item.to" :icon="item.icon" :title="item.title" />
           </template>
-          <UiNavItem to="/sign-in" icon="i-tabler:logout" title="Logout" />
+          <!-- example with dropdown menu -->
           <li class="nav-item dropdown">
             <a
               class="nav-link dropdown-toggle"
@@ -200,8 +175,7 @@ if (auth.isAuthenticated) {
                     Badges
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./blank.html"> Blank page </a>
                   <a class="dropdown-item" href="./buttons.html"> Buttons </a>
@@ -217,8 +191,7 @@ if (auth.isAuthenticated) {
                       Cards
                       <span
                         class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                        >New</span
-                      >
+                      >New</span>
                     </a>
                     <div class="dropdown-menu">
                       <a href="./cards.html" class="dropdown-item">
@@ -228,8 +201,7 @@ if (auth.isAuthenticated) {
                         Card actions
                         <span
                           class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                          >New</span
-                        >
+                        >New</span>
                       </a>
                       <a href="./cards-masonry.html" class="dropdown-item">
                         Cards Masonry
@@ -240,31 +212,27 @@ if (auth.isAuthenticated) {
                     Carousel
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./charts.html"> Charts </a>
                   <a class="dropdown-item" href="./colorpicker.html">
                     Color picker
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./colors.html"> Colors </a>
                   <a class="dropdown-item" href="./datagrid.html">
                     Data grid
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./datatables.html">
                     Datatables
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./dropdowns.html">
                     Dropdowns
@@ -273,8 +241,7 @@ if (auth.isAuthenticated) {
                     Dropzone
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <div class="dropend">
                     <a
@@ -303,22 +270,19 @@ if (auth.isAuthenticated) {
                     Flags
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./inline-player.html">
                     Inline player
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./lightbox.html">
                     Lightbox
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                 </div>
                 <div class="dropdown-menu-column">
@@ -332,8 +296,7 @@ if (auth.isAuthenticated) {
                     Map vector
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./markdown.html"> Markdown </a>
                   <a class="dropdown-item" href="./navigation.html">
@@ -352,22 +315,19 @@ if (auth.isAuthenticated) {
                     Social icons
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./stars-rating.html">
                     Stars rating
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./steps.html">
                     Steps
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./tables.html"> Tables </a>
                   <a class="dropdown-item" href="./tabs.html"> Tabs </a>
@@ -376,8 +336,7 @@ if (auth.isAuthenticated) {
                     TinyMCE
                     <span
                       class="badge badge-sm bg-green-lt text-uppercase ms-auto"
-                      >New</span
-                    >
+                    >New</span>
                   </a>
                   <a class="dropdown-item" href="./toasts.html"> Toasts </a>
                   <a class="dropdown-item" href="./typography.html">

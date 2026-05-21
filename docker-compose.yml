@@ -10,12 +10,14 @@ services:
       - .:/app
       - /app/node_modules
       - .nuxt:/app/.nuxt
-    ports:
-      - "3000:3000"
+    # ports:                    # Not needed with network_mode: "host"
+    #   - "3000:3000"
     environment:
       - NODE_ENV=development
       - HOST=0.0.0.0
       - PORT=3000
+      # - TZ=Asia/Makassar
+    network_mode: "host"
     command: npm run dev
   # Production service
   # app:
@@ -30,5 +32,6 @@ services:
   #     - PORT=3000
   #   restart: unless-stopped
 
-
-  # docker compose up --build
+  # docker compose up --build -d
+  # log: docker compose logs -f
+  # masuk ke container dev:  docker compose exec dev bash

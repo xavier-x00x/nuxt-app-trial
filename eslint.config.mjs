@@ -1,14 +1,38 @@
 // @ts-check
-import withNuxt from "./.nuxt/eslint.config.mjs";
+import pluginVue from 'eslint-plugin-vue';
+import tsParser from '@typescript-eslint/parser';
 
-export default withNuxt({
-  files: ["**/*.ts", "**/*.vue", "**/*.js"],
-  rules: {
-    // "@typescript-eslint/no-explicit-any": "warn",
-    // "@typescript-eslint/no-unused-vars": "off",
-
-    "vue/multi-word-component-names": "off",
-    "vue/html-self-closing": "off",
+export default [
+  ...pluginVue.configs['flat/recommended'],
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
   },
-});
-// Your custom configs here
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parserOptions: {
+        parser: tsParser,
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+  },
+  {
+    rules: {
+      'vue/multi-word-component-names': 'off',
+      'vue/html-self-closing': 'off',
+      'vue/max-attributes-per-line': 'off',
+      'vue/singleline-html-element-content-newline': 'off',
+    },
+  },
+  {
+    ignores: ['**/.nuxt/**', '**/node_modules/**', '**/dist/**', '**/.output/**'],
+  },
+];

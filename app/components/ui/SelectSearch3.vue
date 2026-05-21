@@ -16,7 +16,6 @@ interface ApiResponse<T> {
 interface Props<T> {
   xname: string;
   apiUrl: string;
-  modelValue: unknown;
   valueKey: keyof T;
   limit?: number;
   maxHeight?: number;
@@ -24,8 +23,6 @@ interface Props<T> {
   selectFormat?: (item: T) => string;
   selectedFormat?: (item: T) => string;
 }
-
-// const auth = useAuthStore();
 
 const props = withDefaults(defineProps<Props<Record<string, unknown>>>(), {
   limit: 10,
@@ -35,9 +32,12 @@ const props = withDefaults(defineProps<Props<Record<string, unknown>>>(), {
   selectedFormat: (item: Record<string, unknown>) => `${item.id ?? ""}`,
 });
 
-const emit = defineEmits<{
-  (e: "update:modelValue" | "data-selected", value: unknown): void;
-}>();
+// ─── defineModel: 2 v-model ───────────────────────────────────────────────────
+const modelValue = defineModel<unknown>("modelValue");
+const selectedData = defineModel<Record<string, unknown> | null>("selectedData", {
+  default: null,
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 const page = ref(1);
 const items = ref<Record<string, unknown>[]>([]);
@@ -46,7 +46,6 @@ const loading = ref(false);
 const searchQuery = ref("");
 const selectedItem = ref("");
 const debouncedSearch = useDebounce(searchQuery, 500);
-
 const showDropdown = ref(false);
 
 const wrapper = ref<HTMLElement | null>(null);
@@ -54,34 +53,52 @@ const dropdownx = ref<HTMLElement | null>(null);
 const searchInput = ref<HTMLElement | null>(null);
 const dopdownToggle = ref<HTMLElement | null>(null);
 
-const auth = useAuthStore();
+// ─── Sync label dari items atau selectedData (Pendekatan 3) ───────────────────
+const syncSelectedLabel = () => {
+  if (modelValue.value !== "" && modelValue.value != null) {
+    // Prioritas 1: cari dari items yang sudah ter-load
+    const found = items.value.find(
+      (item) => item[props.valueKey] == modelValue.value
+    );
 
-// Initialize selectedItem from modelValue
-const updateSelectedItem = () => {
-  console.log('xxx : ',props.selectedFormat);
-  
-  if (props.modelValue && props.modelValue !== "") {
-    const item = {
-      [props.valueKey]: props.modelValue,
-    };
-    selectedItem.value = props.selectedFormat(item as Record<string, unknown>);
+    if (found) {
+      selectedItem.value = props.selectedFormat(found);
+      return;
+    }
+
+    // Prioritas 2: gunakan selectedData (untuk form edit sebelum items ter-load)
+    if (selectedData.value) {
+      selectedItem.value = props.selectedFormat(selectedData.value);
+      return;
+    }
+
+    // Prioritas 3: fallback dari modelValue saja
+    selectedItem.value = props.selectedFormat({
+      [props.valueKey]: modelValue.value,
+    });
   } else {
     selectedItem.value = "";
   }
-
-  console.log('selected itemxx : ',selectedItem.value);
 };
 
-updateSelectedItem();
+// Watch items: saat list ter-load, sync label
+watch(items, () => syncSelectedLabel(), { deep: true });
+
+// Watch modelValue: saat parent set ID baru (load edit data)
+watch(modelValue, () => syncSelectedLabel());
+
+// Watch selectedData: saat parent set object dari API edit
+watch(selectedData, () => syncSelectedLabel());
+// ─────────────────────────────────────────────────────────────────────────────
 
 const fetchData = async () => {
   if (loading.value || !hasMore.value) return;
   loading.value = true;
 
-  const { data:response } = await useApi<ApiResponse<T>>(props.apiUrl, {
+  const { data: response } = await useApi<ApiResponse<T>>(props.apiUrl, {
     params: {
       search: debouncedSearch.value,
-      page: page.value, // agar data di load pertama kali, page harus 1
+      page: page.value,
       limit: props.limit,
     },
   });
@@ -123,10 +140,9 @@ const handleScroll = () => {
 };
 
 const selectItem = (item: Record<string, unknown>) => {
-  console.log('selected item', item);
   selectedItem.value = props.selectedFormat(item);
-  emit("update:modelValue", item[props.valueKey]);
-  emit("data-selected", item);
+  modelValue.value = item[props.valueKey];     // ← string/number
+  selectedData.value = item;                   // ← full object
   showDropdown.value = false;
 };
 
@@ -168,7 +184,6 @@ onBeforeUnmount(() => {
 
 <template>
   <div ref="wrapper" class="position-relative">
-    <!-- Input Search -->
     <div ref="dopdownToggle" class="input-icon" data-bs-toggle="dropdown">
       <input
         :id="props.xname"
@@ -185,7 +200,6 @@ onBeforeUnmount(() => {
       </span>
     </div>
 
-    <!-- Dropdown List -->
     <div class="dropdown-menu w-100 p-0">
       <input
         ref="searchInput"
@@ -232,15 +246,14 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 .input-search {
-  /* position: relative; */
-  padding-right: 3rem; /* beri ruang untuk panah */
+  padding-right: 3rem;
   cursor: pointer;
 }
 .input-icon-addon {
   min-width: 3rem;
 }
 .dropdown-menu {
-  width: max-content; /* atau min-width */
-  min-width: max-content; /* pastikan tidak kepotong */
+  width: max-content;
+  min-width: max-content;
 }
 </style>

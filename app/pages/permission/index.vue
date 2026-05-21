@@ -2,31 +2,34 @@
 <script setup lang="ts">
 import type { Column } from "~/components/DataTable3.vue";
 
-const { syncData } = useSyncRoutes();
+const { syncData } = useSyncRoutes(); // untuk sync data dari route
 const { setFlash } = useFlash();
 const { openConfirmDelete } = useConfirmDelete();
+const config = useRuntimeConfig();
 const title = "Permission";
-useHead({
-  title: title,
-});
+useHead({ title });
 
 interface DataList {
   id: number;
   path: string;
   name: string;
+  updated_at: string;
 }
 
 const columns: Column<DataList>[] = [
   {
     key: "path",
     label: "path",
-    className: "text-center",
   },
   {
     key: "name",
     label: "name",
-    className: "text-center",
     sortable: false,
+  },
+  {
+    key: "updated_at",
+    label: "updated at",
+    className: "text-center",
   },
 ];
 
@@ -40,9 +43,11 @@ const onClickHandler = async () => {
   tableRef.value?.reload(); // update data list;
 };
 
-const deleteItem = async (id: number) => {
+const { success, submitForm } = useForm();
+
+const deleteItem = async (id: string) => {
   try {
-    await $fetch(`http://localhost:3050/api/autorization/routes/${id}`, {
+    await submitForm(`${config.public.apiUrl}/permissions/${id}`, {
       method: "DELETE",
     });
     console.log("Data berhasil dihapus:", id);
@@ -52,6 +57,15 @@ const deleteItem = async (id: number) => {
   } catch (err) {
     console.error("Gagal hapus:", err);
   }
+};
+
+const options = {
+  columns,
+  ajax: {
+    url: `${config.public.apiUrl}/permissions/pagination`,
+  },
+  pathKey: "permissions",
+  showActions: true,
 };
 </script>
 <template>
@@ -68,14 +82,7 @@ const deleteItem = async (id: number) => {
       </a>
     </PageHeader>
     <PageBody>
-      <DataTable3
-        ref="tableRef"
-        xkey="routes"
-        api-url="http://localhost:3050/api/autorization/routes"
-        :columns="columns"
-        :limit="20"
-        show-actions
-      >
+      <DataTable3 ref="tableRef" :options="options">
         <!-- custom cell qty -->
         <!-- <template #cell-qty="{ value }">
           <span
@@ -84,6 +91,9 @@ const deleteItem = async (id: number) => {
             {{ value }}
           </span>
         </template> -->
+        <template #cell-updated_at="{ value }">
+          {{ formatDate(value as string) }}
+        </template>
 
         <!-- row actions -->
         <template #row-actions="{ row }">

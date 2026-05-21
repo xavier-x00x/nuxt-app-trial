@@ -1,33 +1,41 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // composables/useApiFetch.ts
-import { useAuthStore } from "~/stores/auth";
+import { useAuthStore, getAccessTokenCookie } from "~/stores/authStore";
+import { useRuntimeConfig } from "#app";
 
+/**
+ * Wrapper around Nuxt's useFetch that automatically adds the Authorization header,
+ * handles token refresh on 401 responses with a limited retry count,
+ * and sets a request timeout.
+ */
 export function useApiFetch<T>(url: string, options: any = {}) {
   const auth = useAuthStore();
-  // const config = useRuntimeConfig()
-  // console.log("useApiFetch", url, auth.accessToken);
+  const MAX_RETRY = 3; // number of retries after a 401
+  let retryCount = 0;
 
-  // tambahkan baseURL bila perlu
-  // const baseURL = config.public.apiBase || "http://localhost:3050"
-  const baseURL = "http://localhost:3050";
+  const config = useRuntimeConfig();
+  const baseURL = config.public.apiUrl;
 
   return useFetch<T>(url, {
     baseURL,
-    retry: 0, // kita handle retry manual
-    headers: {
-      Authorization: `Bearer ${auth.accessToken}`,
-      ...options.headers,
+    timeout: 10000, // 10 seconds timeout per request
+    headers: {},
+    retry: 0, // manual retry handling
+    // Dynamically attach Authorization header on each request
+    onRequest({ options: reqOptions }) {
+      const token = auth.accessToken || getAccessTokenCookie().value;
+      if (token) {
+        reqOptions.headers.set('Authorization', `Bearer ${token}`);
+      }
     },
+    // Merge any user‑provided options (allow overrides after onRequest)
     ...options,
-    async onResponseError({ response, request, options }) {
-      // bila 401 (token invalid/expired)
-      if (response.status === 401) {
+    // Handle 401 errors: refresh token and retry once
+    async onResponseError({ response, options }) {
+      if (response.status === 401 && retryCount < MAX_RETRY) {
+        retryCount++;
         try {
-          // refresh token
           await auth.refreshAccessToken();
-
-          // ulangi request sekali lagi
+          // Retry the original request with the new token
           return await $fetch<T>(url, {
             ...options,
             headers: {
@@ -35,33 +43,15 @@ export function useApiFetch<T>(url: string, options: any = {}) {
               ...(options.headers || {}),
             },
             baseURL,
-            method: options.method as
-              | "GET"
-              | "HEAD"
-              | "PATCH"
-              | "POST"
-              | "PUT"
-              | "DELETE"
-              | "CONNECT"
-              | "OPTIONS"
-              | "TRACE"
-              | "get"
-              | "head"
-              | "patch"
-              | "post"
-              | "put"
-              | "delete"
-              | "connect"
-              | "options"
-              | "trace"
-              | undefined,
+            method: options.method as any,
           });
         } catch (err) {
-          // bila refresh gagal, logout
           await auth.logout();
           throw err;
         }
       }
+      // Propagate other errors or when the retry limit is exceeded
+      throw response;
     },
   });
 }

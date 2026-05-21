@@ -1,18 +1,18 @@
-<!-- eslint-disable vue/html-self-closing -->
 <script setup lang="ts">
-import type { Column } from "~/components/DataTable.vue";
+import type { Column } from "~/components/DataTable3.vue";
+
 const { setFlash } = useFlash();
 const { openConfirmDelete } = useConfirmDelete();
-const title = "Role";
-useHead({
-  title: title,
-});
+const config = useRuntimeConfig();
+const title = "User Management";
+useHead({ title });
 
 interface DataList {
-  id: number;
+  id: string;
   name: string;
   username: string;
   email: string;
+  store_name: string;
   role: string;
   updated_at: string;
 }
@@ -31,6 +31,11 @@ const columns: Column<DataList>[] = [
     label: "email",
   },
   {
+    key: "store_name",
+    label: "store",
+    className: "text-center",
+  },
+  {
     key: "role",
     label: "role",
     className: "text-center",
@@ -42,47 +47,41 @@ const columns: Column<DataList>[] = [
   },
 ];
 
-// const load_data = ref(false);
 const tableRef = ref(); // table ref catatan: ref dikosongkan untuk element
+const { success, submitForm } = useForm();
 
-// const onClickHandler = async () => {
-//   load_data.value = true;
-//   load_data.value = false;
-//   tableRef.value?.reload(); // update data list;
-// };
 
-// const { success, submitForm } = useForm();
+const deleteItem = async (id: string) => {
 
-const deleteItem = async (id: number) => {
-  try {
-    // await $fetch(`http://localhost:3050/api/autorization/routes/${id}`, {
-    //   method: "DELETE",
-    // });
+  const { status, message } = await submitForm(`${config.public.apiUrl}/users/${id}`, {
+    method: "DELETE",
+  });
 
-    // await submitForm(`http://localhost:3050/api/autorization/roles/${id}`, {
-    //   method: "DELETE",
-    // });
-    // if (!success.value) return;
+  if (status === 200) {
     console.log("Data berhasil dihapus:", id);
     // update data list
     tableRef.value?.removeRow(id); // update data list;
-    setFlash("Data berhasil dihapus", "success");
-  } catch (err) {
-    console.error("Gagal hapus:", err);
+    setFlash(message, "success");
+  } else {
+    console.error("Gagal hapus:", message);
+    setFlash(message, "error");
   }
+};
+
+const options = {
+  columns,
+  ajax: {
+    url: `${config.public.apiUrl}/users/pagination`,
+  },
+  pathKey: "users",
+  showActions: true,
 };
 </script>
 <template>
   <div>
     <PageHeader :title="title" icon="i-tabler:package" />
     <PageBody>
-      <DataTable2
-        ref="tableRef"
-        api-url="http://localhost:3050/api/users"
-        :columns="columns"
-        :limit="20"
-        show-actions
-      >
+      <DataTable3 ref="tableRef" :options="options">
         <!-- custom cell qty -->
         <template #cell-role="{ value }">
           <span
@@ -91,6 +90,9 @@ const deleteItem = async (id: number) => {
           >
             {{ value }}
           </span>
+        </template>
+        <template #cell-updated_at="{ value }">
+          {{ formatDate(value as string) }}
         </template>
 
         <!-- row actions -->
@@ -111,7 +113,7 @@ const deleteItem = async (id: number) => {
             Delete
           </a>
         </template>
-      </DataTable2>
+      </DataTable3>
     </PageBody>
     <!-- <ui-prompt ref="promptElx" /> -->
     <ui-confirm-delete-modal />

@@ -9,9 +9,11 @@ useHead({
   title: title,
 });
 
+const reactNav = useState("react-nav", () => 0);
+
 const dataForm = reactive({
-  email: "",
-  password: "",
+  email: "noto@dev.com",
+  password: "12345678",
   remember: false,
 });
 
@@ -20,9 +22,19 @@ const dataForm = reactive({
 const onSubmit = async () => {
   await auth.login(dataForm.email, dataForm.password, dataForm.remember);
   if (auth.isAuthenticated) {
+    reactNav.value++; // Trigger navbar update
     navigateTo("/");
   }
 };
+
+const onGoogleError = (error: any) => {
+  console.error("Google login failed:", error);
+};
+
+onMounted(() => {
+  const firstInput = document.querySelector<HTMLInputElement>("input");
+  firstInput?.focus();
+});
 </script>
 <template>
   <div class="container-tight">
@@ -121,7 +133,18 @@ const onSubmit = async () => {
       <div class="card-body">
         <div class="row">
           <div class="col">
-            <ui-google-sign-in :remember="dataForm.remember" />
+            <ClientOnly>
+              <ui-google-sign-in
+                :remember="dataForm.remember"
+                @error="onGoogleError"
+              />
+              <template #fallback>
+                <a class="btn btn-4 w-100 disabled">
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Loading Google Sign-In...
+                </a>
+              </template>
+            </ClientOnly>
           </div>
         </div>
       </div>

@@ -1,13 +1,13 @@
-<script setup lang="ts">
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
+<script setup lang="ts" generic="T extends { id: number | string }">
 interface Props {
   title: string;
   isEdit?: boolean;
   id?: number;
-}
-
-interface Role {
-  name: string;
-  permissions: string[];
+  modelValue?: {
+    name: string;
+    permission: string[];
+  };
 }
 
 interface Permission {
@@ -16,109 +16,96 @@ interface Permission {
   name: string;
 }
 
-interface RoleResponse {
-  data: Role;
-  error?: string;
+const form = ref();
+const props = defineProps<Props>();
+
+// lokal copy form
+const localForm = ref({
+  name: props.modelValue?.name ?? "",
+  permission: props.modelValue?.permission ?? [],
+});
+
+if (props.modelValue) {
+  // jika props modelValue ada
+  watch(props.modelValue, (val) => {
+    // console.log(val);
+    localForm.value = { ...(val ?? { name: "", permission: [] }) };
+  });
 }
 
-// List Permission
 interface ListResponse<T> {
   data: T[];
   total: number;
   total_filtered: number;
 }
 
-const props = defineProps<Props>();
-const form = ref<HTMLFormElement>();
-const config = useRuntimeConfig();
-const { setFlash } = useFlash();
-const dataForm = ref<Role>({
-  name: "",
-  permissions: [],
-});
+const permissionList = ref([]) as Ref<unknown[]>; // inisialisasi sebagai array kosong
 
-const permissionList = ref<Permission[]>([]);
+async function loadPermissions() {
+  try {
+    const res = await $fetch<ListResponse<T>>(
+      "http://localhost:3050/api/permissions",
+      {
+        headers: { Authorization: `Bearer ${useAuthStore().accessToken}` },
+        params: {
+          limit: 9999, // ambil semua data
+          order_column: "name", // urutkan berdasarkan nama
+          order_dir: "asc",
+        },
+      }
+    );
 
-const { data : permissions, error, refresh } = await useApiFetch<ListResponse<Permission>>(
-  `/permissions`,
-  {
-    params: {
-      limit: 9999,
-      order_column: "name",
-      order_dir: "asc",
-    },
-  },
-);
-
-watch(permissions, (val) => {
-  if (permissions.value) {
-    permissionList.value = permissions.value.data;
-  } else {
-    refresh();
+    console.log(res);
+    permissionList.value.push(...res.data);
+    // permissionList.value = res.data;
+  } catch (err) {
+    console.error("Gagal load permissions:", err);
   }
-}, { immediate: true });
-
-if (props.id) {
-  const { data : roleResponse, error: roleError, status, refresh: refreshRole, pending } = await useApiFetch<RoleResponse>(
-    `/roles/${props.id}`
-  );
-
-  watchEffect(() => {
-    if (roleResponse.value) {
-      dataForm.value = roleResponse.value.data
-    } else {
-      if (roleError.value?.statusCode === 500) {
-        refreshRole();
-      }
-      
-      if (roleError.value) {
-        const statusCode = roleError.value.statusCode;
-        const message = roleError.value.data?.message || "Unknown error";
-
-        if (statusCode === 404) {
-          setFlash(`Error ${statusCode} : ${message}`, "error");
-          navigateTo("/role");
-        } else if (pending.value === false) {
-          setFlash(`Error ${statusCode} : ${message}`, "error");
-        }
-      }
-    }
-  });
 }
 
-const EXCLUDED_PATTERNS = ["index", "sign-in", "sign-up", "sign-out"] as const;
-const HAS_DIGIT = /\d/;
+onMounted(() => {
+  loadPermissions();
+});
 
-const shouldExcludePermission = (name: string): boolean =>
-  EXCLUDED_PATTERNS.some((p) => name.includes(p)) || HAS_DIGIT.test(name);
+// const permissionList = ref(permiss.data?.value?.data) as Ref<unknown[]>;
+
+
 
 const groupedPermissions = computed(() => {
   const groups: Record<string, Permission[]> = {};
 
-  for (const item of permissionList.value) {
-    if (shouldExcludePermission(item.name)) continue;
+  for (const item of permissionList.value as Permission[]) {
+    if (
+      item.name.includes("index") ||
+      item.name.includes("sign-in") ||
+      item.name.includes("sign-up") ||
+      item.name.includes("sign-out") ||
+      item.name.includes("2")
+    ) {
+      continue;
+    }
 
-    const key = item.name.includes("-") ? item.name.split("-")[0] ?? "" : item.name;
-    (groups[key] ??= []).push(item);
+    let key = item.name.includes("-") ? item.name.split("-")[0] : item.name;
+    key = key === undefined ? "" : key;
+
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key]!.push(item);
   }
 
   return groups;
 });
 
-const submitUrl = computed(
-  () =>
-    props.id
-      ? `${config.public.apiUrl}/roles/${props.id}`
-      : `${config.public.apiUrl}/roles`
-);
-const submitMethod = computed(() => (props.id ? "PUT" : "POST"));
+const metode = !props.id ? "POST" : "PUT";
+const parms = !props.id ? `` : `/${props.id}`;
 
 const { loading, success, errors, submitForm } = useForm();
 
 const onSubmit = async () => {
-  await submitForm(submitUrl.value, {
-    method: submitMethod.value,
-    body: dataForm.value,
+  await submitForm("http://localhost:3050/api/autorization/roles" + parms, {
+    method: metode,
+    body: localForm.value,
   });
 
   if (success.value) {
@@ -141,7 +128,7 @@ const onSubmit = async () => {
         :disabled="loading"
         type="button"
         class="btn btn-primary rounded-1"
-        @click="form?.requestSubmit()"
+        @click="form.requestSubmit()"
       >
         <Icon
           v-if="!loading"
@@ -153,7 +140,7 @@ const onSubmit = async () => {
           class="spinner-border text-cyan icon icon-2 me-2"
           role="status"
         ></span>
-        Simpan
+        {{ loading ? "Loading..." : "Simpan" }}
       </button>
     </PageHeader>
     <PageBody>
@@ -161,7 +148,7 @@ const onSubmit = async () => {
         <div class="row justify-content-center">
           <div class="col-xl-8 col-md-8 col-sm-12">
             <ui-input
-              v-model="dataForm.name"
+              v-model="localForm.name"
               label="Role Name"
               type="text"
               placeholder="Input Role"
@@ -170,10 +157,7 @@ const onSubmit = async () => {
             />
             <div class="mb-3 mt-4">
               <label class="form-label">Permission</label>
-              <div v-if="permissionList.length === 0" class="text-muted">
-                Tidak ada permission tersedia.
-              </div>
-              <div v-else class="row">
+              <div class="row">
                 <template
                   v-for="(group, key, index) in groupedPermissions"
                   :key="key"
@@ -188,7 +172,7 @@ const onSubmit = async () => {
                     class="col-xl-3 col-md-6 col-sm-12 mb-2"
                   >
                     <input
-                      v-model="dataForm.permissions"
+                      v-model="localForm.permission"
                       type="checkbox"
                       :value="row.name"
                       class="form-selectgroup-input"

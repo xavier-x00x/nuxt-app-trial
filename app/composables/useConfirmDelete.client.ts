@@ -1,12 +1,12 @@
 export function useConfirmDelete() {
   // const itemId = ref<number | null>(null);
-  const itemId = useState<number | null>("delete_id", () => null);
-  const callback = useState<((id: number) => void) | null>(
+  const itemId = useState<string | number | null>("delete_id", () => null);
+  const callback = useState<((id: any) => void) | null>(
     "confirmDeleteCallback",
     () => null
   );
 
-  const openConfirmDelete = (id: number, cb: (id: number) => void) => {
+  const openConfirmDelete = (id: string | number, cb: (id: any) => void) => {
     itemId.value = id;
     console.log("Data berhasil dihapus:", itemId.value);
     callback.value = cb;

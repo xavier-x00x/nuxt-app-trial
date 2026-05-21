@@ -12,6 +12,17 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "@pinia/nuxt",
   ],
+  // image: {
+  //   provider: "ipx",
+  //   ipx: {
+  //     sharpOptions: {
+  //       animated: true,
+  //     },
+  //   },
+  // },
+  image: {
+    provider: 'none'
+  },
   plugins: [
     // { src: "~/plugins/litepicker/dist/js/main.js", mode: "client" },
     // { src: "litepicker/dist/litepicker.js", mode: "client" },
@@ -75,6 +86,7 @@ export default defineNuxtConfig({
     // "~/assets/css/tabler-vendors.min.css",
   ],
   experimental: {
+    asyncContext: true,
     defaults: {
       nuxtLink: {
         activeClass: "active",
@@ -87,4 +99,9 @@ export default defineNuxtConfig({
       isCustomElement: (tag) => tag.startsWith("cropper-"),
     },
   },
+  runtimeConfig: {
+    public: {
+      apiUrl: "http://localhost:3050/api",
+    },
+  }
 });

@@ -1,18 +1,37 @@
-<!-- eslint-disable vue/html-self-closing -->
 <script setup lang="ts">
 const { toggleTheme } = useTheme();
 
 const auth = useAuthStore();
 
-auth.loadUser(); // hanya jalan di server
+// Read user data directly from UID cookie for instant, jitter-free display.
+// Cookies are synchronously available on both SSR and client hydration,
+// unlike Pinia state which may have a brief gap during hydration.
+const userCookie = useCookie<any>('UID');
+
+const user = computed(() => {
+  // Prefer store (reactive updates)
+  if (auth.user?.name) return auth.user;
+
+  // Fallback to cookie (instant on hydration)
+  const val = userCookie.value;
+  if (val) {
+    if (typeof val === 'string') {
+      try { return JSON.parse(val); } catch { return null; }
+    }
+    if (typeof val === 'object') {
+      return val;
+    }
+  }
+
+  return null;
+});
 
 const name = computed(() => {
-  const nameValue = auth.user?.name || "";
+  const nameValue = user.value?.name || "";
   return nameValue.split(" ").slice(0, 2).join(" ");
 });
 
 const clickAction = () => {
-  // console.log("click");
   toggleTheme();
 };
 
@@ -278,13 +297,13 @@ const keluar = async () => {
         <div class="nav-item dropdown">
           <a
             href="#"
-            class="nav-link d-flex lh-1 text-reset p-0"
+            class="nav-link d-flex lh-1 text-reset p-0 align-self-center"
             data-bs-toggle="dropdown"
             aria-label="Open user menu"
           >
             <img
-              v-if="auth.user?.picture"
-              :src="auth.user?.picture"
+              v-if="user?.avatar_url"
+              :src="user?.avatar_url"
               alt=""
               class="avatar avatar-sm"
             />
@@ -309,9 +328,9 @@ const keluar = async () => {
                 </g>
               </svg>
             </span>
-            <div class="d-none d-xl-block ps-2">
+            <div class="d-none d-xl-block ps-2 mt-n1">
               <div>{{ name }}</div>
-              <div class="mt-1 small text-secondary">{{ auth.user?.role }}</div>
+              <div class="small text-secondary mt-1">{{ user?.role }}</div>
             </div>
           </a>
           <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">

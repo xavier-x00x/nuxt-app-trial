@@ -1,50 +1,66 @@
+<!-- eslint-disable vue/html-self-closing -->
 <script setup lang="ts">
 import type { Column } from "~/components/DataTable3.vue";
 
 const { setFlash } = useFlash();
 const { openConfirmDelete } = useConfirmDelete();
 const config = useRuntimeConfig();
-const title = "Role";
-
+const title = "Toko Management";
 useHead({ title });
 
 interface DataList {
   id: number;
+  code: string;
   name: string;
+  address: string;
+  phone: string;
+  email: string;
+  is_active: string;
   updated_at: string;
 }
 
 const columns: Column<DataList>[] = [
   {
+    key: "code",
+    label: "Code",
+  },
+  {
     key: "name",
-    label: "Role Name",
-    className: "text-center py-0",
+    label: "Name",
+  },
+  {
+    key: "address",
+    label: "Address",
+  },
+  {
+    key: "phone",
+    label: "Phone",
+  },
+  {
+    key: "email",
+    label: "Email",
+  },
+  {
+    key: "is_active",
+    label: "Status",
+    className: "text-center",
   },
   {
     key: "updated_at",
-    label: "Updated At",
+    label: "updated at",
     className: "text-center",
   },
 ];
 
-// const load_data = ref(false);
+const load_data = ref(false);
 const tableRef = ref(); // table ref catatan: ref dikosongkan untuk element
-
-// const onClickHandler = async () => {
-//   load_data.value = true;
-//   load_data.value = false;
-//   tableRef.value?.reload(); // update data list;
-// };
-
 const { success, submitForm } = useForm();
 
 const deleteItem = async (id: number) => {
   try {
-
-    await submitForm(`${config.public.apiUrl}/roles/${id}`, {
+    await submitForm(`${config.public.apiUrl}/stores/${id}`, {
       method: "DELETE",
     });
-    if (!success.value) return;
     console.log("Data berhasil dihapus:", id);
     // update data list
     tableRef.value?.removeRow(id); // update data list;
@@ -57,17 +73,17 @@ const deleteItem = async (id: number) => {
 const options = {
   columns,
   ajax: {
-    url: `${config.public.apiUrl}/roles/pagination`,
+    url: `${config.public.apiUrl}/stores/pagination`,
   },
-  pathKey: "roles",
+  pathKey: "stores",
   showActions: true,
 };
 </script>
 <template>
   <div>
-    <PageHeader :title="title" icon="i-tabler:adjustments-horizontal">
+    <PageHeader :title="title" icon="i-tabler:package">
       <NuxtLink
-        to="/role/new"
+        to="/toko/new"
         class="btn btn-primary rounded-1 d-none d-sm-inline-block"
       >
         <Icon name="i-tabler:plus" class="icon icon-2 me-0" />
@@ -77,30 +93,22 @@ const options = {
     <PageBody>
       <DataTable3 ref="tableRef" :options="options">
         <!-- custom cell qty -->
-        <!-- <template #cell-qty="{ value }">
-          <span
-            :class="['badge', (value as number) > 50 ? 'bg-success' : 'bg-danger']"
-          >
-            {{ value }}
-          </span>
-        </template> -->
-        <template #cell-name="{ value }">
-          <span class="badge bg-light text-dark fs-4">
-            {{ value }}
-          </span>
-        </template>
-
         <template #cell-updated_at="{ value }">
           {{ formatDate(value as string) }}
+        </template>
+        <template #cell-status="{ value }">
+          <span :class="['badge', value ? 'bg-success text-white' : 'bg-danger text-white']">
+            {{ value ? 'Active' : 'Inactive' }}
+          </span>
         </template>
 
         <!-- row actions -->
         <template #row-actions="{ row }">
           <NuxtLink
-            :to="`/role/${row.id}`"
-            class="btn btn-sm py-1 px-2 me-2 rounded-1 text-nowrap"
+            :to="`/toko/${row.id}`"
+            class="btn btn-sm py-1 px-2 rounded-1 text-nowrap me-1"
           >
-            <Icon name="i-tabler:edit" class="icon icon-2" />
+            <Icon name="i-tabler:pencil" class="icon icon-2" />
             Edit
           </NuxtLink>
           <a
@@ -114,7 +122,6 @@ const options = {
         </template>
       </DataTable3>
     </PageBody>
-    <!-- <ui-prompt ref="promptElx" /> -->
     <ui-confirm-delete-modal />
   </div>
 </template>

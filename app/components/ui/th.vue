@@ -5,35 +5,33 @@ const props = defineProps<{
   xorder?: string;
 }>();
 
-// atribut <th>
-const thAttrs = computed<Record<string, string>>(() => {
-  const attrs: Record<string, string> = {
-    class: props.xorder ? "p-0" : "",
+const thAttrs = computed(() => {
+  const classes = props.xorder ? ["p-0"] : [];
+  if (props.xclass) {
+    classes.push(props.xclass);
+  }
+
+  const attrs: { class?: string; width?: string; "data-order"?: string } = {
+    class: classes.join(" ") || undefined,
   };
 
   if (props.xorder) {
     attrs["data-order"] = props.xorder;
   }
   if (props.xwidth) {
-    attrs["width"] = props.xwidth;
-  }
-  if (props.xclass) {
-    attrs["class"] += " " + props.xclass;
+    attrs.width = props.xwidth;
   }
 
   return attrs;
 });
 
-// atribut <span>
-const spAttrs = computed<Record<string, string>>(() => {
-  let cls = "flex-fill";
+const spAttrs = computed(() => {
+  const cls = ["flex-fill"];
   if (props.xclass?.includes("text-center")) {
-    cls += " ps-3";
+    cls.push("ps-3");
   }
-  return { class: cls };
+  return { class: cls.join(" ") };
 });
-
-const { xorder } = props;
 </script>
 
 <template>

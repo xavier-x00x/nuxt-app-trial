@@ -1,19 +1,20 @@
+import permissionBulkData from "~/data/permissions_bulk_data.json";
 export const useSyncRoutes = () => {
   const syncData = async () => {
-    const router = useRouter();
-    const routes = router.getRoutes().map((r) => ({
-      path: r.path,
-      name: r.name,
-    }));
+    // const router = useRouter();
+    const auth = useAuthStore();
+    const config = useRuntimeConfig();
 
     try {
-      await $fetch("http://localhost:3050/api/autorization/sync-routes", {
+      await $fetch(`${config.public.apiUrl}/permissions/sync`, {
         method: "POST",
-        body: { routes },
+        credentials: "include",
+        headers: { Authorization: `Bearer ${auth.accessToken}` },
+        body: permissionBulkData,
       });
-      console.log("✅ Routes synced to backend");
+      console.log("✅ Permissions synced to backend");
     } catch (e) {
-      console.error("❌ Failed to sync routes", e);
+      console.error("❌ Failed to sync permissions", e);
     }
   };
 

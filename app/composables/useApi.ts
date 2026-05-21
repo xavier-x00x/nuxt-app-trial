@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // composables/useApi.ts
+import { getAccessTokenCookie } from "~/stores/authStore";
+
 export async function useApi<T>(
   url: string,
   options: any = {}
@@ -10,88 +11,81 @@ export async function useApi<T>(
   error?: any;
   errors?: any;
 }> {
+  const nuxtApp = useNuxtApp();
   const auth = useAuthStore();
 
-  // if (!options.headers) options.headers = {};
-  // if (auth.accessToken) {
-  //   options.headers["Authorization"] = `Bearer ${auth.accessToken}`;
-  // }
+  // Ambil token dari store, fallback read dari cookie bila SSR
+  // Gunakan helper yang konsisten untuk akses cookie
+  const token = auth.accessToken || nuxtApp.runWithContext(() => {
+    return getAccessTokenCookie(nuxtApp).value;
+  });
 
   // Setup headers dengan token
   const headers = {
     ...options.headers,
-    ...(auth.accessToken && { Authorization: `Bearer ${auth.accessToken}` }),
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
 
   const fetchOptions = {
     ...options,
     headers,
-    // Mencegah throw error, handle manual
-    ignoreResponseError: true,
+    // HAPUS ignoreResponseError supaya $fetch melempar error saat HTTP 401.
+    // Jika tidak dilempar, catch block tidak akan pernah tereksekusi 
+    // dan auto-refresh token tidak akan bekerja.
   };
 
   try {
-    // return await $fetch<T>(url, options);
     const response = await $fetch<any>(url, fetchOptions);
     return {
       data: response,
-      status: response.status || 200,
-      message: response.message,
-      errors: response.data?.errors || response.errors,
+      status: 200,
+      message: response?.message,
+      errors: response?.errors,
     };
   } catch (err: any) {
-    console.warn("API Error:", err); // Log untuk debugging tanpa throw
-    // Kalau token expired → refresh token → ulang request
-    // if (err?.status === 401 && auth.refreshToken) {
-    //   auth.loadRefreshToken();
-    //   await auth.setAccessToken();
+    const errData = err?.response?._data ?? err?.data ?? {};
+    const statusCode = err?.response?.status || err?.status || 500;
 
-    //   if (auth.accessToken) {
-    //     options.headers["Authorization"] = `Bearer ${auth.accessToken}`;
-    //     return await $fetch<T>(url, options); // retry
-    //   }
-    // }
-    // Auto refresh token pada 401 error
-    if (err?.status === 401 && auth.refreshToken) {
+    if (statusCode === 401) {
       try {
-        auth.loadRefreshToken();
-        await auth.setAccessToken();
+        const refreshed = await nuxtApp.runWithContext(() => auth.refreshAccessToken());
 
-        if (auth.accessToken) {
+        if (refreshed && auth.accessToken) {
           fetchOptions.headers.Authorization = `Bearer ${auth.accessToken}`;
           try {
             const retryResponse = await $fetch<any>(url, fetchOptions);
             return {
               data: retryResponse,
-              status: retryResponse.status || 200,
-              message: retryResponse.message,
+              status: 200,
+              message: retryResponse?.message,
             };
           } catch (retryErr: any) {
-            console.warn("API Retry Error:", retryErr);
+            const retryData = retryErr?.response?._data ?? retryErr?.data ?? {};
             return {
               data: null,
-              status: retryErr?.status || 500,
-              message: retryErr?.data?.message || "Request failed after retry",
+              status: retryErr?.response?.status || retryErr?.status || 500,
+              message: retryData?.message || "Request failed after retry",
+              errors: retryData?.errors,
               error: retryErr,
             };
           }
         }
       } catch (refreshErr) {
-        console.warn("Token refresh error:", refreshErr);
         return {
           data: null,
-          status: err?.status || 500,
-          message: err?.data?.message || "Authentication failed",
+          status: statusCode,
+          message: errData?.message || "Authentication failed",
+          errors: errData?.errors,
           error: err,
         };
       }
     }
 
-    // Return error response instead of throwing
     return {
       data: null,
-      status: err?.status || 500,
-      message: err?.data?.message || err?.message || "Request failed",
+      status: statusCode,
+      message: errData?.message || err?.message || "Request failed",
+      errors: errData?.errors,
       error: err,
     };
   }

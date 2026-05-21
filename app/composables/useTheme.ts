@@ -2,6 +2,7 @@ export const useTheme = () => {
   const theme = useCookie<"light" | "dark">("theme", {
     default: () => "light",
     path: "/",
+    maxAge: 60 * 60 * 24 * 365, // 1 year
   });
 
   const setTheme = (value: "light" | "dark") => {

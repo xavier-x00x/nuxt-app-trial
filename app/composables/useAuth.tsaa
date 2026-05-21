@@ -137,11 +137,15 @@ export function useAuth() {
       if (!refreshed) return false;
     }
 
+    let apiUrl = (useRuntimeConfig().public.apiUrl as string) || "http://localhost:3050/api/";
+    if (!apiUrl.endsWith("/")) apiUrl += "/";
+
     const doCheck = async (): Promise<boolean> => {
       const res = await $fetch<{ allowed: boolean }>(
-        `${url}autorization/check-access`,
+        `${apiUrl}roles/authorization`,
         {
           method: "POST",
+          timeout: 5000, // 5 second timeout
           headers: { Authorization: `Bearer ${accessToken.value}` },
           body: { path },
         }
@@ -151,14 +155,20 @@ export function useAuth() {
 
     try {
       return await doCheck();
-    } catch {
+    } catch (error) {
+      console.warn("[useAuth] checkAccess first attempt failed, retrying after token refresh:", error);
+
       // Jika gagal, coba refresh token dan ulangi
       const refreshed = await refreshAccessToken();
-      if (!refreshed) return false;
+      if (!refreshed) {
+        console.error("[useAuth] checkAccess: token refresh failed");
+        return false;
+      }
 
       try {
         return await doCheck();
-      } catch {
+      } catch (retryError) {
+        console.error("[useAuth] checkAccess failed after retry:", retryError);
         return false;
       }
     }

@@ -8,17 +8,22 @@ import {
 
 export const useGoogleReg = () => {
   const { setFlash } = useFlash();
+  const config = useRuntimeConfig();
   const handleOnSuccess = async (response: AuthCodeFlowSuccessResponse) => {
     try {
       const res = await $fetch<ApiSuccessResponse<string>>(
-        "auth/google-register",
+        "/auth/google/register",
         {
           method: "POST",
-          body: { access_token: response.access_token },
-          baseURL: "http://localhost:3050/api/",
+          baseURL: config.public.apiUrl || "http://localhost:3050/api",
+          body: { 
+            token: response.access_token,
+            token_type: 'access'
+          },
         }
       );
       setFlash(res.message, "success");
+      navigateTo("/sign-in");
     } catch (err) {
       const e = err as FetchError<ApiErrorResponse>;
       const res = e?.data;

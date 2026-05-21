@@ -1,57 +1,66 @@
-<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 const route = useRoute();
+const config = useRuntimeConfig();
+const { setFlash } = useFlash();
 const title = "Edit User";
-useHead({
-  title: title,
-});
+useHead({ title });
 
-const auth = useAuthStore();
+interface User {
+  name: string;
+  username: string;
+  email: string;
+  store_id: string | null;
+  store_name: string | null;
+  role: string;
+}
 
-const userResponse: any = await useFetch(
-  "http://localhost:3050/api/users/" + route.params.id,
+interface UserResponse {
+  data: User;
+  message: string;
+}
+
+const userId = computed(() => String(route.params.id));
+
+const token = useAuthStore().accessToken;
+const { data: userResp } = await useFetch<UserResponse>(
+  `${config.public.apiUrl}/users/${userId.value}`,
   {
-    method: "GET",
-    headers: {
-      Authorization: "Bearer " + auth.accessToken,
-    },
+    headers: { Authorization: `Bearer ${token}` },
   }
 );
 
-const user = userResponse.data.value.data;
-
-if (!user) {
-  throw createError({ statusCode: 404, statusMessage: "User not found" });
-}
-
-const dataForm = reactive({
-  name: user.name,
-  username: user.username,
-  email: user.email,
-  role: user.role,
-  avatar: user.avatar,
+const dataForm = ref<User>({
+  name: "",
+  username: "",
+  email: "",
+  store_id: null,
+  store_name: null,
+  role: "",
 });
 
-console.log(dataForm);
+const selectedItemStore = ref({ id: "", name: "", address: "" });
+const selectedItemRole = ref({ name: "" });
 
-// onMounted(async () => {
-//   const res: { data: any } = await useApi(
-//     "http://localhost:3050/api/autorization/roles/" + route.params.id
-//   );
-//   dataForm.name = res?.data.name;
-//   dataForm.permission = res?.data.permission ?? [];
-// });
+watchEffect(() => {
+  const user = userResp.value?.data;
+  if (user) {
+    dataForm.value = { ...user, store_id: user.store_id ?? null, store_name: user.store_name ?? null, role: user.role ?? "" };
+    selectedItemStore.value = { id: user.store_id ?? "", name: user.store_name ?? "", address: "" };
+    selectedItemRole.value = { name: user.role ?? "" };
+  }
+});
 
-const form = ref();
-const { loading, success, errors, submitForm } = useForm();
+const form = ref<HTMLFormElement>();
+const { loading, success, errors, submitForm, formatError } = useForm2();
 
 const onSubmit = async () => {
-  await submitForm("http://localhost:3050/api/users/" + route.params.id, {
+  await submitForm(`${config.public.apiUrl}/users/${userId.value}`, {
     method: "PUT",
-    body: dataForm,
+    body: dataForm.value,
   });
 
   if (success.value) {
+    setFlash("Data berhasil diubah", "success");
     navigateTo("/user");
   }
 };
@@ -59,61 +68,63 @@ const onSubmit = async () => {
 <template>
   <div>
     <PageHeader :title="title" icon="i-tabler:package">
-      <button
-        :disabled="loading"
-        type="button"
-        class="btn btn-primary rounded-1"
-        @click="form.requestSubmit()"
-      >
-        <Icon
-          v-if="!loading"
-          name="i-tabler:clipboard-check"
-          class="icon icon-2 me-1"
-        />
-        <span
-          v-else
-          class="spinner-border text-cyan icon icon-2 me-2"
-          role="status"
-        ></span>
-        {{ loading ? "Loading..." : "Simpan" }}
-      </button>
+      <ui-button-back to="/user" />
+      <ui-button-save :loading="loading" :form="form" @save="form?.requestSubmit()" />
     </PageHeader>
     <PageBody>
       <form ref="form" autocomplete="off" novalidate @submit.prevent="onSubmit">
         <div class="row justify-content-center">
           <div class="col-xl-6 col-md-8 col-sm-12">
-            <ui-input
+            {{ errors }}
+
+            <ui-input2
               v-model="dataForm.name"
               label="Name"
               type="text"
               placeholder="Input Name"
-              :error="errors.Name"
+              :error="errors.name"
             />
-            <ui-input
+            <div class="mb-2">
+              <label class="form-label mb-1">Role</label>
+              <ui-select-search4
+                v-model="dataForm.role"
+                v-model:selected-data="selectedItemRole"
+                xname="role"
+                value-key="name"
+                placeholder="Input Role"
+                :api-url="`${config.public.apiUrl}/roles/pagination`"
+                :select-format="(item) => `${(item as any).name}`"
+                :selected-format="(item) => `${(item as any).name}`"
+              />
+              <span class="text-danger error-text" v-text="errors.role"></span>
+            </div>
+            <ui-input2
               v-model="dataForm.username"
               label="Username"
               type="text"
               placeholder="Input Username"
-              :error="errors.Username"
+              :error="errors.username"
             />
-            <ui-input
+            <ui-input2
               v-model="dataForm.email"
               label="Email"
               type="email"
               placeholder="Input Email"
-              :error="errors.Email"
+              :error="errors.email"
             />
             <div class="mb-2">
-              <label class="form-label mb-1">Role</label>
-              <ui-select-search
-                v-model="dataForm.role"
-                xname="role"
-                value-key="name"
-                placeholder="Input Role"
-                :api-url="'http://localhost:3050/api/autorization/roles'"
+              <label class="form-label mb-1">Store</label>
+              <ui-select-search4
+                v-model="dataForm.store_id"
+                v-model:selected-data="selectedItemStore"
+                xname="store_id"
+                value-key="id"
+                placeholder="Input Store"
+                :api-url="`${config.public.apiUrl}/stores/pagination`"
                 :select-format="(item) => `${item.name}`"
-                :selected-format="(item) => `${item.name}`"
+                :selected-format="(item: any) => `${item.name}`"
               />
+              <span class="text-danger error-text" v-text="formatError('Store', 'store_id')"></span>
             </div>
           </div>
         </div>

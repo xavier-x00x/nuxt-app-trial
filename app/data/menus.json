@@ -1,0 +1,45 @@
+[
+  {
+    "title": "Home",
+    "icon": "tabler:home",
+    "to": "/",
+    "permission": ""
+  },
+  {
+    "title": "About",
+    "icon": "tabler:info-circle",
+    "to": "/about",
+    "permission": "about"
+  },
+  {
+    "title": "User",
+    "icon": "tabler:users",
+    "to": "/user",
+    "permission": "users:view"
+  },
+  {
+    "title": "Toko",
+    "icon": "tabler:building-warehouse",
+    "to": "/toko",
+    "permission": "toko:view"
+  },
+  {
+    "title": "Role",
+    "icon": "tabler:user-check",
+    "to": "/role",
+    "permission": "roles:view"
+  },
+  {
+    "title": "Permissions",
+    "icon": "tabler:lock-access",
+    "to": "/permission",
+    "permission": "permissions:view"
+  },
+  {
+    "title": "Logout",
+    "icon": "i-tabler:logout",
+    "to": "/sign-in",
+    "permission": "logout"
+  }
+]
+
