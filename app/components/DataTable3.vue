@@ -31,10 +31,12 @@ interface Options<T> {
   columns: Column<T>[];
   pathKey: string; // key
   showActions?: boolean;
+  actionWidth?: string;
 }
 
 interface Props<T> {
   options?: Options<T>;
+  filterParams?: Record<string, any>;
 }
 
 const props = withDefaults(defineProps<Props<T>>(), {
@@ -46,12 +48,27 @@ const props = withDefaults(defineProps<Props<T>>(), {
     columns: [],
     pathKey: Math.random().toString(36).slice(2, 9),
     showActions: true,
+    actionWidth: "15%",
   }),
+  filterParams: () => ({}),
 });
 
-const options = reactive(props.options);
+const options = computed(() => {
+  const opts = props.options || {};
+  return {
+    ajax: {
+      method: "GET",
+      ...opts.ajax,
+    },
+    columns: opts.columns || [],
+    pathKey: opts.pathKey || "default-key",
+    showActions: opts.showActions ?? true,
+    actionWidth: opts.actionWidth || "15%",
+    limit: opts.limit,
+  };
+});
 const page = ref(1);
-const limit = ref(options.limit || 20);
+const limit = ref(options.value.limit || 20);
 const search = ref("");
 const debouncedSearch = useDebounce(search, 500);
 const order_column = ref("");
@@ -64,14 +81,28 @@ const loading = ref(false);
 const hasMore = ref(true);
 const loadMoreTrigger = ref<HTMLElement | null>(null);
 
+const filterToggleRef = ref<HTMLElement | null>(null);
+
+const closeFilterPopup = () => {
+  if (import.meta.client && filterToggleRef.value) {
+    const dropdown = window.bootstrap?.Dropdown.getInstance(filterToggleRef.value);
+    if (dropdown) {
+      dropdown.hide();
+    } else {
+      (filterToggleRef.value as HTMLElement).click();
+    }
+  }
+};
+
 const responseData = async () => {
-  const { data } = await useApi<ListResponse<T>>(options.ajax.url, {
+  const { data } = await useApi<ListResponse<T>>(options.value.ajax.url, {
     params: {
       search: debouncedSearch.value,
       page: rows.value.length === 0 ? 1 : page.value,
       limit: limit.value,
       order_column: order_column.value,
       order_dir: order_direction.value,
+      ...props.filterParams,
     },
   });
 
@@ -80,6 +111,9 @@ const responseData = async () => {
 
 const fetchData = (response: ListResponse<T> | null, refresh: boolean) => {
   if (response) {
+    if (response.data === null) {
+      response.data = [];
+    }
     hasMore.value = response.data.length === limit.value;
     rows.value = refresh ? response.data : [...rows.value, ...response.data];
     total.value = response.meta.total;
@@ -97,11 +131,11 @@ async function loadData(refresh = false) {
   loading.value = false;
 }
 
-watch([debouncedSearch, order_column, order_direction], () => {
+watch([debouncedSearch, order_column, order_direction, () => props.filterParams], () => {
   page.value = 1;
   hasMore.value = true;
   loadData(true);
-});
+}, { deep: true });
 
 onMounted(() => {
   const observer = new IntersectionObserver((entries) => {
@@ -150,7 +184,7 @@ function reload() {
 defineExpose({ removeRow, reload });
 
 // fetch data di server
-const { data } = await useAsyncData(`data-${options.pathKey}`, async () => {
+const { data } = await useAsyncData(`data-${options.value.pathKey}`, async () => {
   const data = await responseData();
   return data;
 });
@@ -164,16 +198,36 @@ if (data.value) {
 
 <template>
   <div>
-    <!-- Search -->
+    <!-- Search & Filter -->
     <div class="row mb-2">
-      <div class="ms-auto col-xl-2 col-md-4 col-sm-12">
-        <input
-          v-model="search"
-          type="text"
-          class="form-control py-2 px-3 rounded-1"
-          placeholder="Search"
-          autocomplete="off"
-        />
+      <div class="ms-auto col-sm-12 col-xl-3 col-md-4" > 
+        <div class="row align-items-center justify-content-end">
+          <div v-if="$slots['filter-popup']" class="col-sm-3 col-md-2 text-end py-1">
+            <span ref="filterToggleRef" class="text-muted px-1 align-middle" data-bs-toggle="dropdown" data-bs-auto-close="false" aria-expanded="false" role="button" tabindex="0" style="cursor: pointer; line-height: 1;">
+              <Icon name="i-tabler-filter-cog" size="1.15rem" />
+            </span>
+            <div class="dropdown-menu dropdown-menu-end shadow border-0 p-0" style="min-width: 300px; z-index: 1050; border-radius: 8px;">
+              <div class="d-flex align-items-center justify-content-between px-3 py-2 border rounded-top-2 bg-light-custom">
+                <span class="fw-semibold small text-uppercase text-muted">Filter</span>
+                <span class="text-muted" role="button" tabindex="0" style="cursor: pointer; line-height: 1;" @click="closeFilterPopup">
+                  <Icon name="i-tabler:x" size="1.1rem" />
+                </span>
+              </div>
+              <div class="p-3">
+                <slot name="filter-popup" />
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-9 col-xl-8 col-md-8" >
+            <input
+              v-model="search"
+              type="text"
+              class="form-control py-2 px-3 rounded-1 col-7 col-md-8"
+              placeholder="Search"
+              autocomplete="off"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -183,7 +237,7 @@ if (data.value) {
         <thead class="sticky-top">
           <tr>
             <ui-th xwidth="5%" xclass="text-end">No.</ui-th>
-            <ui-th v-if="options.showActions" xwidth="15%" xclass="text-center">
+            <ui-th v-if="options.showActions" :xwidth="options.actionWidth" xclass="text-center">
               Aksi
             </ui-th>
             <ui-th
@@ -251,3 +305,19 @@ if (data.value) {
     </div>
   </div>
 </template>
+
+<style scoped>
+:root {
+  --colorx-bg-dark: #ffffff;
+}
+
+/* ─── Dark Mode ────────────────────────────────────── */
+:root[data-bs-theme="dark"] {
+  --colorx-bg-dark: #182433;
+}
+
+.bg-light-custom {
+  background-color: var(--colorx-bg-dark) !important;
+}
+
+</style>

@@ -3,9 +3,7 @@
 import type { Column } from "~/components/DataTable3.vue";
 
 const { syncData } = useSyncRoutes(); // untuk sync data dari route
-const { setFlash } = useFlash();
 const { openConfirmDelete } = useConfirmDelete();
-const config = useRuntimeConfig();
 const title = "Permission";
 useHead({ title });
 
@@ -43,26 +41,19 @@ const onClickHandler = async () => {
   tableRef.value?.reload(); // update data list;
 };
 
-const { success, submitForm } = useForm();
+const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: string) => {
-  try {
-    await submitForm(`${config.public.apiUrl}/permissions/${id}`, {
-      method: "DELETE",
-    });
-    console.log("Data berhasil dihapus:", id);
-    // update data list
-    tableRef.value?.removeRow(id); // update data list;
-    setFlash("Data berhasil dihapus", "success");
-  } catch (err) {
-    console.error("Gagal hapus:", err);
-  }
+  await submitForm(`/permissions/${id}`, {
+    method: "DELETE",
+  });
+  if (success.value) tableRef.value?.removeRow(id);
 };
 
 const options = {
   columns,
   ajax: {
-    url: `${config.public.apiUrl}/permissions/pagination`,
+    url: `/permissions/pagination`,
   },
   pathKey: "permissions",
   showActions: true,

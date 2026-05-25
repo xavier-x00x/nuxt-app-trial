@@ -1,0 +1,35 @@
+{
+  "parameters": {
+    "companyName": "Acme Studio",
+    "tagline": "Design & Engineering",
+    "invoiceNo": "00123",
+    "invoiceDate": "2026, May",
+    "billToName": "John Smith",
+    "billToAddress": "87 Polk St.\nSan Francisco, 94117\nUSA, CA",
+    "logoPath": "/jrxml/logo.svg"
+  },
+  "rows": [
+    { "st": 1,  "description": "Coding",                    "rate": 50, "hours": 72, "price": 3600 },
+    { "st": 2,  "description": "Logo design",               "rate": 45, "hours": 16, "price": 720  },
+    { "st": 3,  "description": "Website design",            "rate": 47, "hours": 36, "price": 1692 },
+    { "st": 4,  "description": "UI development",            "rate": 40, "hours": 56, "price": 2240 },
+    { "st": 5,  "description": "Training",                  "rate": 25, "hours": 8,  "price": 200  },
+    { "st": 6,  "description": "Branding consultation",     "rate": 60, "hours": 12, "price": 720  },
+    { "st": 7,  "description": "Wireframing",               "rate": 45, "hours": 20, "price": 900  },
+    { "st": 8,  "description": "Prototype design",          "rate": 50, "hours": 24, "price": 1200 },
+    { "st": 9,  "description": "Mobile app UI",             "rate": 55, "hours": 40, "price": 2200 },
+    { "st": 10, "description": "Icon set design",           "rate": 35, "hours": 10, "price": 350  },
+    { "st": 11, "description": "User research",             "rate": 60, "hours": 18, "price": 1080 },
+    { "st": 12, "description": "Usability testing",         "rate": 50, "hours": 14, "price": 700  },
+    { "st": 13, "description": "Design system setup",       "rate": 65, "hours": 22, "price": 1430 },
+    { "st": 14, "description": "Frontend integration",      "rate": 55, "hours": 48, "price": 2640 },
+    { "st": 15, "description": "QA & bug fixing",           "rate": 30, "hours": 20, "price": 600  },
+    { "st": 16, "description": "Deployment setup",          "rate": 50, "hours": 6,  "price": 300  },
+    { "st": 17, "description": "Documentation",             "rate": 30, "hours": 12, "price": 360  },
+    { "st": 18, "description": "Project management",        "rate": 70, "hours": 30, "price": 2100 },
+    { "st": 19, "description": "Stakeholder workshop",      "rate": 80, "hours": 6,  "price": 480  },
+    { "st": 20, "description": "Marketing illustrations",   "rate": 40, "hours": 14, "price": 560  },
+    { "st": 21, "description": "Email template design",     "rate": 35, "hours": 8,  "price": 280  },
+    { "st": 22, "description": "Final review & handover",   "rate": 60, "hours": 5,  "price": 300  }
+  ]
+}

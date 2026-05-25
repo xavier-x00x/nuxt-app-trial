@@ -1,10 +1,5 @@
 <script setup lang="ts">
-
-import { useForm } from '@/composables/useForm';
-import { useApiFetch } from '@/composables/useApiFetch';
-
 const route  = useRoute();
-const config = useRuntimeConfig();
 const { setFlash } = useFlash();
 
 const id = computed(() => String(route.params.id));
@@ -44,16 +39,10 @@ if (id.value !== "new") {
     }
     dataForm.value = roleResponse.value.data;
   }
-
-  console.log(dataForm.value);
-  
 }
 
 const form = ref<HTMLFormElement>();
-const { loading, success, errors, submitForm } = useForm();
-
 const permissionList = ref<Permission[]>([]);
-
 const { data: permissionRes, error: permissionError } = await useApiFetch<{ data: Permission[] }>('/permissions');
 
 if (permissionError.value) {
@@ -75,8 +64,6 @@ const groupedPermissions = computed(() => {
   const groups: Record<string, Permission[]> = {};
 
   for (const item of permissionList.value) {
-    console.log(item);
-    
     if (shouldExcludePermission(item.path)) continue;
 
     const key = item.path.includes(":") ? item.path.split(":")[0] ?? "" : item.path;
@@ -86,54 +73,23 @@ const groupedPermissions = computed(() => {
   return groups;
 });
 
-
-const submitUrl = computed(() =>
-  id.value === "new"
-    ? `${config.public.apiUrl}/roles`
-    : `${config.public.apiUrl}/roles/${id.value}`
-);
-const submitMethod = computed(() => (id.value === "new" ? "POST" : "PUT"));
+const { loading, success, errors, formatError, submitForm } = useForm2();
+const { url: submitUrl, method: submitMethod } = useResource("roles", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {
     method: submitMethod.value,
     body: dataForm.value,
   });
-
-  if (success.value) {
-    navigateTo("/role");
-  }
+  if (success.value) navigateTo("/role");
 };
 
 </script>
 <template>
   <div>
     <PageHeader :title="title" icon="i-tabler:package">
-      <NuxtLink
-        to="/role"
-        class="btn btn-outline-secondary rounded-1 d-none d-sm-inline-block"
-      >
-        <Icon name="i-tabler:arrow-left" class="icon icon-2 me-0" />
-        Kembali
-      </NuxtLink>
-      <button
-        :disabled="loading"
-        type="button"
-        class="btn btn-primary rounded-1"
-        @click="form?.requestSubmit()"
-      >
-        <Icon
-          v-if="!loading"
-          name="i-tabler:clipboard-check"
-          class="icon icon-2 me-1"
-        />
-        <span
-          v-else
-          class="spinner-border text-cyan icon icon-2 me-2"
-          role="status"
-        ></span>
-        Simpan
-      </button>
+      <ui-button-back to="/role" />
+      <ui-button-save :loading="loading" :form="form" @save="form?.requestSubmit()" />
     </PageHeader>
     <PageBody>
       <form ref="form" autocomplete="off" novalidate @submit.prevent="onSubmit">
@@ -154,7 +110,7 @@ const onSubmit = async () => {
                 Tidak ada permission tersedia.
               </div>
               <div v-else>
-                <template v-for="(group, key, index) in groupedPermissions" :key="key">
+                <template v-for="(group, key) in groupedPermissions" :key="key">
                   <div class="card mb-3">
                     <div class="card-header text-capitalize">{{ key }}</div>
                     <div class="card-body">

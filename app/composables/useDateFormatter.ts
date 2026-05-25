@@ -53,6 +53,10 @@ export function formatDate(
     customOptions,
   } = options;
 
+  if (!value || String(value).startsWith('0001-01-01')) {
+    return '-';
+  }
+
   const date = value instanceof Date ? value : new Date(value);
 
   if (isNaN(date.getTime())) {

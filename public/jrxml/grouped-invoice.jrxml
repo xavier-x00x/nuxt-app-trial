@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="GroupedInvoice" pageWidth="595" pageHeight="842"
+  leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30"
+  columnWidth="535">
+  <field name="category" class="java.lang.String"/>
+  <field name="description" class="java.lang.String"/>
+  <field name="price" class="java.lang.Double"/>
+
+  <variable name="categorySubtotal" class="java.lang.Double" calculation="Sum" resetType="Group" resetGroup="categoryGroup">
+    <variableExpression><![CDATA[$F{price}]]></variableExpression>
+  </variable>
+  <variable name="grandTotal" class="java.lang.Double" calculation="Sum" resetType="Report">
+    <variableExpression><![CDATA[$F{price}]]></variableExpression>
+  </variable>
+
+  <group name="categoryGroup" isReprintHeaderOnEachPage="true">
+    <groupExpression><![CDATA[$F{category}]]></groupExpression>
+    <groupHeader>
+      <band height="20">
+        <textField>
+          <reportElement x="0" y="2" width="535" height="16" backcolor="#E0E0FF" mode="Opaque"/>
+          <textElement textAlignment="Left" verticalAlignment="Middle">
+            <font size="11" isBold="true"/>
+          </textElement>
+          <textFieldExpression><![CDATA["Category: " + $F{category}]]></textFieldExpression>
+        </textField>
+      </band>
+    </groupHeader>
+    <groupFooter>
+      <band height="20">
+        <staticText>
+          <reportElement x="0" y="2" width="400" height="16"/>
+          <textElement textAlignment="Right">
+            <font size="10" isItalic="true"/>
+          </textElement>
+          <text><![CDATA[Subtotal:]]></text>
+        </staticText>
+        <textField>
+          <reportElement x="400" y="2" width="135" height="16"/>
+          <textElement textAlignment="Right">
+            <font size="10" isBold="true"/>
+          </textElement>
+          <textFieldExpression><![CDATA[$V{categorySubtotal}]]></textFieldExpression>
+        </textField>
+      </band>
+    </groupFooter>
+  </group>
+
+  <title>
+    <band height="40">
+      <staticText>
+        <reportElement x="0" y="0" width="535" height="30"/>
+        <textElement textAlignment="Center"><font size="18" isBold="true"/></textElement>
+        <text><![CDATA[Grouped Invoice]]></text>
+      </staticText>
+    </band>
+  </title>
+
+  <columnHeader>
+    <band height="20">
+      <staticText><reportElement x="0" y="0" width="400" height="20"/><textElement><font isBold="true"/></textElement><text><![CDATA[Description]]></text></staticText>
+      <staticText><reportElement x="400" y="0" width="135" height="20"/><textElement textAlignment="Right"><font isBold="true"/></textElement><text><![CDATA[Price]]></text></staticText>
+    </band>
+  </columnHeader>
+
+  <detail>
+    <band height="18">
+      <textField>
+        <reportElement x="0" y="0" width="400" height="18"/>
+        <textFieldExpression><![CDATA[$F{description}]]></textFieldExpression>
+      </textField>
+      <textField>
+        <reportElement x="400" y="0" width="135" height="18"/>
+        <textElement textAlignment="Right"/>
+        <textFieldExpression><![CDATA[$F{price}]]></textFieldExpression>
+      </textField>
+    </band>
+  </detail>
+
+  <summary>
+    <band height="30">
+      <staticText>
+        <reportElement x="0" y="5" width="400" height="20"/>
+        <textElement textAlignment="Right"><font isBold="true"/></textElement>
+        <text><![CDATA[GRAND TOTAL:]]></text>
+      </staticText>
+      <textField>
+        <reportElement x="400" y="5" width="135" height="20"/>
+        <textElement textAlignment="Right"><font isBold="true" size="12"/></textElement>
+        <textFieldExpression><![CDATA[$V{grandTotal}]]></textFieldExpression>
+      </textField>
+    </band>
+  </summary>
+</jasperReport>

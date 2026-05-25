@@ -1,0 +1,12 @@
+{
+  "parameters": {},
+  "rows": [
+    { "category": "Design", "description": "Logo design", "price": 500 },
+    { "category": "Design", "description": "Banner design", "price": 300 },
+    { "category": "Design", "description": "Business card", "price": 200 },
+    { "category": "Development", "description": "Frontend setup", "price": 1500 },
+    { "category": "Development", "description": "API integration", "price": 1200 },
+    { "category": "Development", "description": "Bug fixes", "price": 400 },
+    { "category": "Support", "description": "Training session", "price": 600 }
+  ]
+}

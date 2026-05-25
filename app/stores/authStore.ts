@@ -154,10 +154,30 @@ export const useAuthStore = defineStore("auth", {
         if (role === "administrator" || role === "programmer") {
           this.menus = menusData;
         } else {
-          this.menus = menusData.filter((item: any) => {
-            if (!item.permission) return true;
-            return perms.includes(item.permission);
-          });
+          this.menus = menusData.reduce((acc: any[], item: any) => {
+            // Check top-level permission
+            if (item.permission && !perms.includes(item.permission)) {
+              return acc;
+            }
+            
+            const newItem = { ...item };
+            
+            // Filter childs if they exist
+            if (newItem.childs && newItem.childs.length > 0) {
+              newItem.childs = newItem.childs.filter((child: any) => {
+                if (!child.permission) return true;
+                return perms.includes(child.permission);
+              });
+              
+              // If it's a dropdown menu but all children are filtered out, don't show the parent
+              if (newItem.childs.length === 0) {
+                return acc;
+              }
+            }
+            
+            acc.push(newItem);
+            return acc;
+          }, []);
         }
       }
     },

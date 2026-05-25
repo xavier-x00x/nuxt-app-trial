@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import type { Column } from "~/components/DataTable3.vue";
 
-const { setFlash } = useFlash();
 const { openConfirmDelete } = useConfirmDelete();
-const config = useRuntimeConfig();
 const title = "Role";
-
 useHead({ title });
 
 interface DataList {
@@ -27,41 +24,32 @@ const columns: Column<DataList>[] = [
   },
 ];
 
-// const load_data = ref(false);
 const tableRef = ref(); // table ref catatan: ref dikosongkan untuk element
-
-// const onClickHandler = async () => {
-//   load_data.value = true;
-//   load_data.value = false;
-//   tableRef.value?.reload(); // update data list;
-// };
-
-const { success, submitForm } = useForm();
+const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: number) => {
-  try {
-
-    await submitForm(`${config.public.apiUrl}/roles/${id}`, {
-      method: "DELETE",
-    });
-    if (!success.value) return;
-    console.log("Data berhasil dihapus:", id);
-    // update data list
-    tableRef.value?.removeRow(id); // update data list;
-    setFlash("Data berhasil dihapus", "success");
-  } catch (err) {
-    console.error("Gagal hapus:", err);
-  }
+  await submitForm(`/roles/${id}`, {
+    method: "DELETE",
+  });
+  if (success.value) tableRef.value?.removeRow(id);
 };
 
 const options = {
   columns,
   ajax: {
-    url: `${config.public.apiUrl}/roles/pagination`,
+    url: `/roles/pagination`,
   },
   pathKey: "roles",
   showActions: true,
 };
+
+const filterParams = ref<Record<string, any>>({
+  is_active: '',
+  date_from: '',
+  date_to: '',
+  period:'',
+});
+
 </script>
 <template>
   <div>
@@ -75,15 +63,36 @@ const options = {
       </NuxtLink>
     </PageHeader>
     <PageBody>
-      <DataTable3 ref="tableRef" :options="options">
-        <!-- custom cell qty -->
-        <!-- <template #cell-qty="{ value }">
-          <span
-            :class="['badge', (value as number) > 50 ? 'bg-success' : 'bg-danger']"
-          >
-            {{ value }}
-          </span>
-        </template> -->
+      <DataTable3 ref="tableRef" :options="options" :filter-params="filterParams">
+        <template #filter-popup>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Status</label>
+            <select v-model="filterParams.is_active" class="form-select form-select-md">
+              <option value="">Semua</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-12">
+              <label class="form-label fw-medium">Tanggal</label>
+              <UiDatePickerRange v-model:start="filterParams.date_from" v-model:end="filterParams.date_to" class-name="form-control-md" placeholder="Pilih tanggal" />
+            </div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-medium">Periode</label>
+              <UiDatePickerPeriod v-model="filterParams.period" class-name="form-control-md" placeholder="Pilih periode" />
+            </div>
+          </div>
+          <hr class="my-2">
+          <div class="d-flex justify-content-between">
+            <button class="btn btn-sm-custom btn-outline-secondary" @click="filterParams = { is_active: '', date_from: '', date_to: '' }">
+              Reset
+            </button>
+            <span class="text-muted small align-self-center">Filter otomatis diterapkan</span>
+          </div>
+        </template>
         <template #cell-name="{ value }">
           <span class="badge bg-light text-dark fs-4">
             {{ value }}
@@ -118,3 +127,11 @@ const options = {
     <ui-confirm-delete-modal />
   </div>
 </template>
+
+<style scoped>
+.btn-sm-custom {
+    padding: 0.3125rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    border-radius: var(--tblr-border-radius-sm) !important;
+}
+</style>

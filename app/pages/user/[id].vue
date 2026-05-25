@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const route = useRoute();
-const config = useRuntimeConfig();
 const { setFlash } = useFlash();
 const title = "Edit User";
 useHead({ title });
@@ -21,13 +20,10 @@ interface UserResponse {
 
 const userId = computed(() => String(route.params.id));
 
-const token = useAuthStore().accessToken;
-const { data: userResp } = await useFetch<UserResponse>(
-  `${config.public.apiUrl}/users/${userId.value}`,
-  {
-    headers: { Authorization: `Bearer ${token}` },
-  }
+const { data: userResp } = await useApiFetch<UserResponse>(
+  `/users/${userId.value}`,
 );
+
 
 const dataForm = ref<User>({
   name: "",
@@ -54,7 +50,7 @@ const form = ref<HTMLFormElement>();
 const { loading, success, errors, submitForm, formatError } = useForm2();
 
 const onSubmit = async () => {
-  await submitForm(`${config.public.apiUrl}/users/${userId.value}`, {
+  await submitForm(`/users/${userId.value}`, {
     method: "PUT",
     body: dataForm.value,
   });
@@ -92,7 +88,7 @@ const onSubmit = async () => {
                 xname="role"
                 value-key="name"
                 placeholder="Input Role"
-                :api-url="`${config.public.apiUrl}/roles/pagination`"
+                :api-url="`/roles/pagination`"
                 :select-format="(item) => `${(item as any).name}`"
                 :selected-format="(item) => `${(item as any).name}`"
               />
@@ -120,7 +116,7 @@ const onSubmit = async () => {
                 xname="store_id"
                 value-key="id"
                 placeholder="Input Store"
-                :api-url="`${config.public.apiUrl}/stores/pagination`"
+                :api-url="`/stores/pagination`"
                 :select-format="(item) => `${item.name}`"
                 :selected-format="(item: any) => `${item.name}`"
               />

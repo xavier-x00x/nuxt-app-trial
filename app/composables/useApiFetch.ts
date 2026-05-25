@@ -1,4 +1,5 @@
 // composables/useApiFetch.ts
+// fungsi : untuk ambil data dari API dengan fitur auto refresh token pada 401 dan timeout request
 import { useAuthStore, getAccessTokenCookie } from "~/stores/authStore";
 import { useRuntimeConfig } from "#app";
 

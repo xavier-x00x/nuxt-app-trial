@@ -21,7 +21,7 @@
         type="text"
         :class="[
           'form-control rounded-1 input-search-toggle',
-          { 'is-invalid': !!error },
+          // { 'is-invalid': !!error },
           iclass
         ]"
         :placeholder="placeholder"

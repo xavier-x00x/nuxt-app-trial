@@ -20,9 +20,9 @@
       <!-- AutoNumeric Input (for number / numeric) -->
       <input
         v-if="isNumeric"
+        :id="inputId"
         ref="numericInputRef"
         type="text"
-        :id="inputId"
         :class="[
           'form-control rounded-1 text-end',
           { 'is-invalid': !!error },
@@ -115,7 +115,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Setup dual v-model binding
 const model = defineModel<any>();
-const raw = defineModel<number>('raw');
+const withFormat = defineModel<any>('withFormat');
 
 // Generate unique ID for input-label association
 const inputId = props.id || useId();
@@ -154,10 +154,11 @@ onMounted(() => {
     });
 
     // Set initial value
-    if (raw.value !== undefined && raw.value !== null) {
-      numericInstance.set(raw.value);
-    } else if (model.value !== undefined && model.value !== null) {
-      numericInstance.set(model.value);
+    const initialRaw = model.value !== undefined && model.value !== null ? Number(model.value) : null;
+    if (initialRaw !== null && !isNaN(initialRaw)) {
+      numericInstance.set(initialRaw);
+    } else if (withFormat.value !== undefined && withFormat.value !== null) {
+      numericInstance.set(withFormat.value);
     }
 
     // Update values on input events
@@ -165,11 +166,11 @@ onMounted(() => {
       if (!numericInstance || !numericInputRef.value) return;
       const currentNum = numericInstance.getNumber() ?? 0;
       
-      if (raw.value !== currentNum) {
-        raw.value = currentNum;
+      if (model.value !== currentNum) {
+        model.value = currentNum;
       }
-      if (model.value !== numericInputRef.value.value) {
-        model.value = numericInputRef.value.value;
+      if (withFormat.value !== numericInputRef.value.value) {
+        withFormat.value = numericInputRef.value.value;
       }
     };
 
@@ -178,21 +179,24 @@ onMounted(() => {
   }
 });
 
-// Watch for external changes to `raw` prop to update AutoNumeric input
-watch(() => raw.value, (newRaw) => {
-  if (isNumeric.value && numericInstance && numericInstance.getNumber() !== newRaw) {
-    numericInstance.set(newRaw ?? 0);
-    model.value = numericInputRef.value?.value;
+// Watch for external changes to `model` prop (raw numeric value) to update AutoNumeric input
+watch(() => model.value, (newVal) => {
+  if (isNumeric.value && numericInstance) {
+    const num = Number(newVal) || 0;
+    if (numericInstance.getNumber() !== num) {
+      numericInstance.set(num);
+      withFormat.value = numericInputRef.value?.value;
+    }
   }
 });
 
-// Watch for external changes to `model` prop for numeric input
-watch(() => model.value, (newModel) => {
-  if (isNumeric.value && numericInstance && numericInputRef.value && numericInputRef.value.value !== newModel) {
-    numericInstance.set(newModel);
+// Watch for external changes to `withFormat` prop (formatted string) for numeric input
+watch(() => withFormat.value, (newVal) => {
+  if (isNumeric.value && numericInstance && numericInputRef.value && numericInputRef.value.value !== newVal) {
+    numericInstance.set(newVal ?? null);
     const currentNum = numericInstance.getNumber() ?? 0;
-    if (raw.value !== currentNum) {
-      raw.value = currentNum;
+    if (model.value !== currentNum) {
+      model.value = currentNum;
     }
   }
 });

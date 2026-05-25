@@ -2,9 +2,7 @@
 <script setup lang="ts">
 import type { Column } from "~/components/DataTable3.vue";
 
-const { setFlash } = useFlash();
 const { openConfirmDelete } = useConfirmDelete();
-const config = useRuntimeConfig();
 const title = "Toko Management";
 useHead({ title });
 
@@ -52,28 +50,20 @@ const columns: Column<DataList>[] = [
   },
 ];
 
-const load_data = ref(false);
 const tableRef = ref(); // table ref catatan: ref dikosongkan untuk element
-const { success, submitForm } = useForm();
+const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: number) => {
-  try {
-    await submitForm(`${config.public.apiUrl}/stores/${id}`, {
-      method: "DELETE",
-    });
-    console.log("Data berhasil dihapus:", id);
-    // update data list
-    tableRef.value?.removeRow(id); // update data list;
-    setFlash("Data berhasil dihapus", "success");
-  } catch (err) {
-    console.error("Gagal hapus:", err);
-  }
+  await submitForm(`/stores/${id}`, {
+    method: "DELETE",
+  });
+  if (success.value) tableRef.value?.removeRow(id);
 };
 
 const options = {
   columns,
   ajax: {
-    url: `${config.public.apiUrl}/stores/pagination`,
+    url: `/stores/pagination`,
   },
   pathKey: "stores",
   showActions: true,
@@ -96,7 +86,7 @@ const options = {
         <template #cell-updated_at="{ value }">
           {{ formatDate(value as string) }}
         </template>
-        <template #cell-status="{ value }">
+        <template #cell-is_active="{ value }">
           <span :class="['badge', value ? 'bg-success text-white' : 'bg-danger text-white']">
             {{ value ? 'Active' : 'Inactive' }}
           </span>

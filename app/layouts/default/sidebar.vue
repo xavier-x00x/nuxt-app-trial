@@ -6,7 +6,7 @@ const auth = useAuthStore();
 
 <template>
   <!-- Sidebar -->
-  <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+  <aside class="navbar navbar-vertical navbar-expand-lg d-print-none" data-bs-theme="dark">
     <div class="container-fluid">
       <button
         class="navbar-toggler"
@@ -76,7 +76,7 @@ const auth = useAuthStore();
       <div id="sidebar-menu" class="collapse navbar-collapse">
         <ul class="navbar-nav pt-lg-3">
           <template v-for="item in auth.menus" :key="item.title">
-            <UiNavItem :to="item.to" :icon="item.icon" :title="item.title" />
+            <UiNavItem2 :to="item.to" :icon="item.icon" :title="item.title" :childs="item.childs" />
           </template>
           <!-- example with dropdown menu -->
           <li class="nav-item dropdown">

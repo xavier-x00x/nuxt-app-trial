@@ -12,6 +12,50 @@
     "permission": "about"
   },
   {
+    "title": "Master",
+    "icon": "tabler:box",
+    "permission": "",
+    "childs": [
+      {
+        "title": "Produk",
+        "to": "/product",
+        "permission": "produk:view"
+      },
+      {
+        "title": "Kategori",
+        "to": "/category",
+        "permission": "kategori:view"
+      },
+      {
+        "title": "Supplier",
+        "to": "/supplier",
+        "permission": "supplier:view"
+      },
+      {
+        "title": "Warehouse",
+        "to": "/warehouse",
+        "permission": "warehouse:view"
+      },
+      {
+        "title": "UOM",
+        "to": "/uom",
+        "permission": "uom:view"
+      }
+    ]
+  },
+  {
+    "title": "Finance",
+    "icon": "tabler:currency-dollar",
+    "permission": "",
+    "childs": [
+      {
+        "title": "Chart of Accounts",
+        "to": "/account",
+        "permission": "account:view"
+      }
+    ]
+  },
+  {
     "title": "User",
     "icon": "tabler:users",
     "to": "/user",
@@ -36,10 +80,68 @@
     "permission": "permissions:view"
   },
   {
+    "title": "Usulan",
+    "icon": "tabler:file-check",
+    "permission": "master-data:view",
+    "childs": [
+      {
+        "title": "Produk",
+        "to": "/usulan/product",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Supplier",
+        "to": "/usulan/supplier",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Akun",
+        "to": "/usulan/coa",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Pajak",
+        "to": "/usulan/tax",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Harga Jual",
+        "to": "/usulan/product-price",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Konversi Satuan",
+        "to": "/usulan/product-uom",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Kontrak Supplier",
+        "to": "/usulan/product-supplier",
+        "permission": "master-data:view"
+      }
+    ]
+  },
+  {
+    "title": "Report",
+    "icon": "tabler:file-text",
+    "permission": "",
+    "childs": [
+      {
+        "title": "Invoice",
+        "to": "/report/invoice",
+        "permission": ""
+      },
+      {
+        "title": "Purchase Order",
+        "to": "/report/po",
+        "permission": ""
+      }
+    ]
+  },
+  {
     "title": "Logout",
     "icon": "i-tabler:logout",
     "to": "/sign-in",
     "permission": "logout"
   }
 ]
-

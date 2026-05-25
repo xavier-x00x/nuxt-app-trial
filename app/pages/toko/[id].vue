@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const route = useRoute();
 const { setFlash } = useFlash();
-const config = useRuntimeConfig();
 
 const id = computed(() => String(route.params.id));
 const title = computed(() => id.value === "new" ? "Create Store" : "Edit Store");
@@ -33,43 +32,26 @@ const dataForm = ref<Store>({
 });
 
 if (id.value !== "new") {
-  const { data: storeData, error } = await useAsyncData<Store>(
-    `store-${id.value}`,
-    async () => {
-      const response = await $fetch<StoreResponse>(`${config.public.apiUrl}/stores/${id.value}`, {
-        headers: { Authorization: `Bearer ${useAuthStore().accessToken}` },
-      });
-      return response.data;
-    }
-  );
-
-  if (error.value || !storeData.value) {
+  const { data: resp, error } = await useApiFetch<StoreResponse>(`/stores/${id.value}`);
+  if (error.value || !resp.value) {
     setFlash("Data toko tidak ditemukan", "error");
     navigateTo("/toko");
   } else {
-    dataForm.value = storeData.value;
+    dataForm.value = resp.value.data;
   }
 }
 
 const form = ref<HTMLFormElement>();
-const { loading, success, errors, submitForm } = useForm();
+const { loading, success, errors, formatError, submitForm } = useForm2();
 
-const submitUrl = computed(() =>
-  id.value === "new"
-    ? `${config.public.apiUrl}/stores`
-    : `${config.public.apiUrl}/stores/${id.value}`
-);
-const submitMethod = computed(() => (id.value === "new" ? "POST" : "PUT"));
+const { url: submitUrl, method: submitMethod } = useResource("stores", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {
     method: submitMethod.value,
     body: dataForm.value,
   });
-
-  if (success.value) {
-    navigateTo("/toko");
-  }
+  if (success.value) navigateTo("/toko");
 };
 </script>
 

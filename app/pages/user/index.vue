@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { Column } from "~/components/DataTable3.vue";
 
-const { setFlash } = useFlash();
 const { openConfirmDelete } = useConfirmDelete();
-const config = useRuntimeConfig();
 const title = "User Management";
 useHead({ title });
 
@@ -48,30 +46,19 @@ const columns: Column<DataList>[] = [
 ];
 
 const tableRef = ref(); // table ref catatan: ref dikosongkan untuk element
-const { success, submitForm } = useForm();
-
+const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: string) => {
-
-  const { status, message } = await submitForm(`${config.public.apiUrl}/users/${id}`, {
+  await submitForm(`/users/${id}`, {
     method: "DELETE",
   });
-
-  if (status === 200) {
-    console.log("Data berhasil dihapus:", id);
-    // update data list
-    tableRef.value?.removeRow(id); // update data list;
-    setFlash(message, "success");
-  } else {
-    console.error("Gagal hapus:", message);
-    setFlash(message, "error");
-  }
+  if (success.value) tableRef.value?.removeRow(id);
 };
 
 const options = {
   columns,
   ajax: {
-    url: `${config.public.apiUrl}/users/pagination`,
+    url: `/users/pagination`,
   },
   pathKey: "users",
   showActions: true,
