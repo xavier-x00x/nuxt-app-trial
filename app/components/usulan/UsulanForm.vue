@@ -6,6 +6,8 @@ interface Props {
   title: string;
   icon: string;
   basePath: string;
+  id?: string;
+  proposal?: any;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -13,7 +15,11 @@ const props = withDefaults(defineProps<Props>(), {
   title: "New Proposal",
   icon: "i-tabler:file-check",
   basePath: "/usulan",
+  id: undefined,
+  proposal: undefined,
 });
+
+const isEdit = computed(() => !!props.id);
 
 const actionTypes = [
   { value: "CREATE", label: "Create" },
@@ -129,6 +135,39 @@ const proposalType = ref("CREATE");
 const reason = ref("");
 const items = ref<Record<string, any>>([{}]);
 
+if (props.proposal) {
+  fillForm(props.proposal);
+}
+
+function fillForm(proposal: any) {
+  proposalType.value = proposal.action_type;
+  reason.value = proposal.reason || "";
+  
+  
+  items.value = proposal.items.map((item: any) => {
+    const base: Record<string, any> = {
+      _item_id: item.id,
+      entity_id: item.entity_id || null,
+    };
+    if (proposal.action_type === "CREATE") {
+      console.log(item.payload_json);
+      
+      return { ...base, ...item.payload_json };
+      // try {
+      //   const payload = JSON.parse(item.payload_json);
+      //   return { ...base, ...payload };
+      // } catch {
+      //   // return { ...base, payload: item.payload_json };
+      //   return { ...base, ...item.payload_json };
+      // }
+    }
+    if (proposal.action_type === "UPDATE") {
+      return { ...base, payload: item.payload_json };
+    }
+    return base;
+  });
+}
+
 const addItem = () => {
   items.value.push({});
 };
@@ -147,17 +186,46 @@ const onSubmit = async () => {
     entity_type: props.entityType,
     action_type: proposalType.value,
     reason: reason.value || undefined,
-    items: items.value.map((item) => ({
-      entity_id: item.entity_id || null,
-      payload_json: JSON.stringify(item.payload || item),
-    })),
+    items: items.value.map((item) => {
+      let payload: any;
+      if (proposalType.value === "CREATE") {
+        const fields = currentFields.value.map((f) => f.key);
+        payload = {};
+        for (const key of fields) {
+          if (item[key] !== undefined) payload[key] = item[key];
+          if (item[key+'_text'] !== undefined) payload[key+'_text'] = item[key+'_text'];
+        }
+      } else if (proposalType.value === "UPDATE") {
+        try {
+          payload = JSON.parse(item.payload);
+        } catch {
+          payload = item.payload;
+        }
+      } else {
+        payload = {};
+      }
+
+      const result: Record<string, any> = {
+        entity_id: item.entity_id || null,
+        payload_json: JSON.stringify(payload),
+      };
+      if (isEdit.value && item._item_id) result.id = item._item_id;
+      return result;
+    }),
   };
 
-  await submitForm("/master-data", {
-    method: "POST",
-    body: dataPayload,
-  });
-  if (success.value) navigateTo(props.basePath);
+  if (isEdit.value) {
+    await submitForm(`/master-data/${props.id}`, {
+      method: "PUT",
+      body: dataPayload,
+    });
+  } else {
+    await submitForm("/master-data", {
+      method: "POST",
+      body: dataPayload,
+    });
+  }
+  // if (success.value) navigateTo(props.basePath);
 };
 </script>
 
@@ -173,7 +241,7 @@ const onSubmit = async () => {
           <div class="col-xl-8 col-md-8 col-sm-12">
             <div class="mb-3">
               <label class="form-label">Action <span class="text-danger">*</span></label>
-              <select v-model="proposalType" class="form-select rounded-1">
+              <select v-model="proposalType" class="form-select rounded-1" :disabled="isEdit">
                 <option v-for="at in actionTypes" :key="at.value" :value="at.value">
                   {{ at.label }}
                 </option>
@@ -195,6 +263,7 @@ const onSubmit = async () => {
               :key="idx"
               class="border rounded-1 p-3 mb-3 position-relative"
             >
+              {{ item }}
               <button
                 v-if="items.length > 1"
                 type="button"
@@ -251,13 +320,15 @@ const onSubmit = async () => {
                       </template>
                       <template v-else-if="field.type === 'selectx'">
                         <label class="form-label">{{ field.label }} <span v-if="field.required" class="text-danger">*</span></label>
-                        <UiSelectSearch4
+                        <UiSelectSearch5
                           v-model="item[field.key]"
+                          v-model:display-value="item[field.key+'_text']"
                           value-key="id"
                           :api-url="field.apiUrl as string"
                           :xname="`${field.key}_id`"
                           :placeholder="'Select ' + field.label"
                           :clearable="true"
+                          :selected-format="(item) => item.name"
                         />
                       </template>
                       <template v-else-if="field.type === 'textarea'">

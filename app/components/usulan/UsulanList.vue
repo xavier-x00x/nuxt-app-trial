@@ -64,6 +64,21 @@ defineSlots<{
   'filter-popup'?: (props: {}) => any;
 }>();
 
+const entityEditBase: Record<string, string> = {
+  PRODUCT: "/usulan/product/edit",
+  SUPPLIER: "/usulan/supplier/edit",
+  CHART_OF_ACCOUNT: "/usulan/coa/edit",
+  TAX: "/usulan/tax/edit",
+  PRODUCT_PRICE: "/usulan/product-price/edit",
+  PRODUCT_UOM_CONVERSION: "/usulan/product-uom/edit",
+  PRODUCT_SUPPLIER: "/usulan/product-supplier/edit",
+};
+
+const editUrl = (row: DataList) => {
+  const base = entityEditBase[row.entity_type];
+  return base ? `${base}/${row.id}` : `/master-data/${row.id}`;
+};
+
 const filterStatus = ref("");
 
 const filterParams = computed(() => {
@@ -80,7 +95,7 @@ const options = {
   },
   pathKey: "usulan-list",
   showActions: true,
-  actionWidth: "8%",
+  actionWidth: "15%",
 };
 </script>
 <template>
@@ -135,13 +150,23 @@ const options = {
         </template>
 
         <template #row-actions="{ row }">
-          <NuxtLink
-            :to="`/master-data/${row.id}`"
-            class="btn btn-sm py-1 px-2 rounded-1 text-nowrap"
-          >
-            <Icon name="i-tabler:eye" class="icon icon-2" />
-            Detail
-          </NuxtLink>
+          <div class="d-flex gap-1">
+            <NuxtLink
+              v-if="row.status === 'PENDING'"
+              :to="editUrl(row as DataList)"
+              class="btn btn-sm py-1 px-2 rounded-1 text-nowrap btn-warning text-dark"
+            >
+              <Icon name="i-tabler:pencil" class="icon icon-2" />
+              Edit
+            </NuxtLink>
+            <NuxtLink
+              :to="`/master-data/${row.id}`"
+              class="btn btn-sm py-1 px-2 rounded-1 text-nowrap"
+            >
+              <Icon name="i-tabler:eye" class="icon icon-2" />
+              Detail
+            </NuxtLink>
+          </div>
         </template>
       </DataTable3>
     </PageBody>

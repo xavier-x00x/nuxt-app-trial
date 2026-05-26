@@ -61,6 +61,19 @@ const actionColor: Record<string, string> = {
   DELETE: "bg-danger text-white",
 };
 
+const editPath = computed(() => {
+  const map: Record<string, string> = {
+    PRODUCT: `/usulan/product/edit/${id.value}`,
+    SUPPLIER: `/usulan/supplier/edit/${id.value}`,
+    CHART_OF_ACCOUNT: `/usulan/coa/edit/${id.value}`,
+    TAX: `/usulan/tax/edit/${id.value}`,
+    PRODUCT_PRICE: `/usulan/product-price/edit/${id.value}`,
+    PRODUCT_UOM_CONVERSION: `/usulan/product-uom/edit/${id.value}`,
+    PRODUCT_SUPPLIER: `/usulan/product-supplier/edit/${id.value}`,
+  };
+  return map[proposal.entity_type] || null;
+});
+
 const parsedPayloads = computed(() => {
   return proposal.value.items.map((item) => {
     try {
@@ -243,6 +256,14 @@ const executeProposal = async () => {
 
           <!-- Actions -->
           <div v-if="proposal.status === 'PENDING'" class="d-flex gap-2">
+            <NuxtLink
+              v-if="editPath"
+              :to="editPath"
+              class="btn btn-warning rounded-1 text-dark"
+            >
+              <Icon name="i-tabler:pencil" class="icon icon-2 me-1" />
+              Edit
+            </NuxtLink>
             <button
               type="button"
               class="btn btn-success rounded-1"
