@@ -225,7 +225,12 @@ const syncDisplayValue = () => {
       return;
     }
 
-    // Prioritas 3: fallback dari modelValue saja
+    // Prioritas 3: gunakan displayValue yang sudah ada jika tersedia (misal saat edit form)
+    if (displayValue.value) {
+      return;
+    }
+
+    // Prioritas 4: fallback dari modelValue saja
     displayValue.value = props.selectedFormat({
       [props.valueKey]: modelValue.value,
     } as unknown as T);

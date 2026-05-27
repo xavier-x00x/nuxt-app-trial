@@ -187,7 +187,7 @@ defineExpose({ removeRow, reload });
 const { data } = await useAsyncData(`data-${options.value.pathKey}`, async () => {
   const data = await responseData();
   return data;
-});
+}, { watch: [() => props.filterParams] });
 
 if (data.value) {
   fetchData(data.value, true);
