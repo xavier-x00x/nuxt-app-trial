@@ -55,7 +55,7 @@ const deleteItem = async (id: string) => {
 const options = {
   columns,
   ajax: {
-    url: `/price-lists`,
+    url: `/price-lists/pagination`,
   },
   pathKey: "price-lists",
   showActions: true,
