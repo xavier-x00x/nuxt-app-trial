@@ -52,6 +52,11 @@
         "title": "Chart of Accounts",
         "to": "/account",
         "permission": "account:view"
+      },
+      {
+        "title": "Price Lists",
+        "to": "/price-list",
+        "permission": "price-list:view"
       }
     ]
   },
