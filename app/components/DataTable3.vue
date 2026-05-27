@@ -114,10 +114,10 @@ const fetchData = (response: ListResponse<T> | null, refresh: boolean) => {
     if (response.data === null) {
       response.data = [];
     }
-    hasMore.value = response.data.length === limit.value;
+    hasMore.value = response.meta ? response.data.length === limit.value : false;
     rows.value = refresh ? response.data : [...rows.value, ...response.data];
-    total.value = response.meta.total;
-    total_filtered.value = response.meta.total_filtered;
+    total.value = response.meta?.total ?? response.data.length;
+    total_filtered.value = response.meta?.total_filtered ?? response.data.length;
   }
 };
 
