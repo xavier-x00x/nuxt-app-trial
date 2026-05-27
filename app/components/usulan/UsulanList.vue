@@ -93,7 +93,7 @@ const options = {
   ajax: {
     url: `/master-data/pagination`,
   },
-  pathKey: "usulan-list",
+  pathKey: `usulan-list-${props.entityType || 'all'}`,
   showActions: true,
   actionWidth: "15%",
 };
