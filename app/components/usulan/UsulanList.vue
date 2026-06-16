@@ -43,10 +43,10 @@ const actionColor: Record<string, string> = {
 };
 
 const statusColor: Record<string, string> = {
-  PENDING: "bg-warning text-dark",
-  APPROVED: "bg-success text-white",
-  REJECTED: "bg-danger text-white",
-  EXECUTED: "bg-secondary text-white",
+  PENDING: "bg-warning-lt",
+  APPROVED: "bg-success-lt",
+  REJECTED: "bg-danger-lt",
+  EXECUTED: "bg-secondary-lt",
 };
 
 const columns: Column<DataList>[] = [
@@ -152,19 +152,19 @@ const options = {
         <template #row-actions="{ row }">
           <div class="d-flex gap-1">
             <NuxtLink
-              v-if="row.status === 'PENDING'"
-              :to="editUrl(row as DataList)"
-              class="btn btn-sm py-1 px-2 rounded-1 text-nowrap btn-warning text-dark"
-            >
-              <Icon name="i-tabler:pencil" class="icon icon-2" />
-              Edit
-            </NuxtLink>
-            <NuxtLink
               :to="`/master-data/${row.id}`"
               class="btn btn-sm py-1 px-2 rounded-1 text-nowrap"
             >
               <Icon name="i-tabler:eye" class="icon icon-2" />
               Detail
+            </NuxtLink>
+            <NuxtLink
+              v-if="row.status === 'PENDING'"
+              :to="editUrl(row as DataList)"
+              class="btn btn-sm py-1 px-2 rounded-1 text-nowrap"
+            >
+              <Icon name="i-tabler:pencil" class="icon icon-2" />
+              Edit
             </NuxtLink>
           </div>
         </template>

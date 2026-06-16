@@ -59,7 +59,7 @@ const entityFields: Record<string, FieldDef[]> = {
     { key: "contact_phone", label: "Contact Phone", type: "text", col: "col-md-6" },
     { key: "phone_number", label: "Phone Number", type: "text", col: "col-md-6" },
     { key: "email", label: "Email", type: "email", col: "col-md-6" },
-    { key: "preferred_notification_method", label: "Notification Method", type: "text", col: "col-md-6" },
+    { key: "preferred_notification_method", label: "Notification Method", type: "select", col: "col-md-6", options: [{ value: "EMAIL", label: "Email" }, { value: "WHATSAPP", label: "Whatsapp" }, { value: "", label: "None" }] },
     { key: "tax_reg_number", label: "Tax Reg Number", type: "text", col: "col-md-6" },
     { key: "supplier_category_id", label: "Supplier Category", type: "selectx", apiUrl: "/supplier-categories/pagination", col: "col-md-6" },
     { key: "ap_account_id", label: "AP Account", type: "selectx", apiUrl: "/accounts/query", col: "col-md-6" },
@@ -184,7 +184,7 @@ const parsePayload = (payload: any) => {
 // Resolve display name untuk field selectx yang hanya punya ID tanpa text
 const resolveRelationText = async (item: Record<string, any>, field: FieldDef) => {
   if (!field.apiUrl || !item[field.key]) return;
-  const detailUrl = field.apiUrl.replace('/pagination', '') + '/' + item[field.key];
+  const detailUrl = field.apiUrl.replace('/pagination', '').replace('/query', '') + '/' + item[field.key];
   try {
     const { data } = await useApi<any>(detailUrl);
     if (data?.data) {
@@ -519,7 +519,7 @@ const onSubmit = async () => {
                   :select-format="(e) => formatEntityText(entityType, e)"
                 />
                 
-                <div v-if="item._selected_obj" class="mt-3 p-3 bg-light rounded-1 border text-dark">
+                <div v-if="item._selected_obj" class="mt-3 p-3 bg-body-secondary rounded-1 border">
                   <div class="fw-semibold mb-2 small text-uppercase text-muted">Ringkasan Data yang Akan Dihapus:</div>
                   <div class="row g-2 small">
                     <template v-for="field in currentFields.filter(f => f.type !== 'switch' && f.type !== 'textarea').slice(0, 4)" :key="field.key">

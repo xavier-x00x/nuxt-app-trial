@@ -27,6 +27,11 @@
         "permission": "kategori:view"
       },
       {
+        "title": "Kategori Supplier",
+        "to": "/supplier-category",
+        "permission": "supplier-categories:view"
+      },
+      {
         "title": "Supplier",
         "to": "/supplier",
         "permission": "supplier:view"

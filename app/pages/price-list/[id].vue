@@ -10,7 +10,6 @@ interface PriceList {
   id?: string;
   code: string;
   name: string;
-  start_date?: string;
   is_active: boolean;
 }
 
@@ -22,7 +21,6 @@ interface PriceListResponse {
 const dataForm = ref({
   code: "",
   name: "",
-  effective_date: "",
   is_active: true,
 });
 
@@ -36,7 +34,6 @@ if (id.value !== "new") {
     dataForm.value = {
       code: pl.code,
       name: pl.name,
-      effective_date: pl.start_date ? pl.start_date.substring(0, 10) : "",
       is_active: pl.is_active,
     };
   }
@@ -52,7 +49,6 @@ const onSubmit = async () => {
     code: dataForm.value.code,
     name: dataForm.value.name,
     currency_code: "IDR",
-    start_date: dataForm.value.effective_date ? new Date(dataForm.value.effective_date).toISOString() : null,
     is_active: dataForm.value.is_active,
   };
 
@@ -91,13 +87,7 @@ const onSubmit = async () => {
               :error="errors.name"
               required
             />
-            <ui-input2
-              v-model="dataForm.effective_date"
-              label="Effective Date"
-              type="date"
-              placeholder="Select effective date"
-              :error="errors.effective_date || errors.start_date"
-            />
+
             <div class="mb-3">
               <label class="form-label">Status</label>
               <div class="form-selectgroup">

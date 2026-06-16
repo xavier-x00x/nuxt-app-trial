@@ -94,7 +94,7 @@ const filterParams = ref<Record<string, any>>({
           </div>
         </template>
         <template #cell-name="{ value }">
-          <span class="badge bg-light text-dark fs-4">
+          <span class="badge bg-secondary-lt fs-4">
             {{ value }}
           </span>
         </template>
