@@ -12,13 +12,10 @@ if (error.value || !resp.value?.data) {
 }
 </script>
 <template>
-  <UsulanForm
+  <UsulanProductUomForm
     v-if="resp?.data"
     :id="id"
     :proposal="resp.data"
     :title="title"
-    icon="i-tabler:arrows-exchange"
-    entity-type="PRODUCT_UOM_CONVERSION"
-    base-path="/usulan/product-uom"
   />
 </template>

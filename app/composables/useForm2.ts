@@ -90,7 +90,10 @@ export function useForm2() {
   const formatError = (label: string, key: string) => {
     const msg = errors.value[key];
     if (!msg) return "";
-    return msg.replace(new RegExp(key, "i"), label);
+    const parts = key.split('.');
+    const fieldName = parts[parts.length - 1] || key;
+    const escapedField = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return msg.replace(new RegExp(escapedField, "i"), label);
   };
 
   return {

@@ -11,10 +11,11 @@ interface DataList {
   sku: string;
   barcode: string;
   name: string;
+  variant: string | null;
   category_id: string;
-  category: { name: string } | null;
+  category_name: string | null;
   base_uom_id: string;
-  base_uom: { name: string } | null;
+  uom_name: string | null;
   is_stockable: boolean;
   length: number;
   width: number;
@@ -22,6 +23,9 @@ interface DataList {
   weight: number;
   is_stackable: boolean;
   max_stack_layer: number;
+  is_taxable: boolean;
+  tax_id: string;
+  tax_name: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -79,12 +83,16 @@ const deleteItem = async (id: string) => {
 };
 
 const selectedProduct = ref<DataList | null>(null);
+const productUoms = ref<any[]>([]);
+const productSuppliers = ref<any[]>([]);
 const loading = ref(false);
 const detailModalEl = ref<HTMLElement | null>(null);
 const detailModal = ref<any>(null);
 
 const showDetail = async (row: DataList) => {
   selectedProduct.value = row;
+  productUoms.value = [];
+  productSuppliers.value = [];
   loading.value = true;
 
   if (import.meta.client) {
@@ -96,11 +104,34 @@ const showDetail = async (row: DataList) => {
 
   detailModal.value?.show();
 
-  const { data, error } = await useApi<{ data: DataList }>(`/products/${row.id}`);
-  if (!error && data?.data) {
-    selectedProduct.value = data.data;
+  const [resProduct, resUoms, resSuppliers] = await Promise.all([
+    useApi<{ data: DataList }>(`/products/${row.id}`),
+    useApi<{ data: any[] }>(`/product-uoms/product/${row.id}`),
+    useApi<{ data: any[] }>(`/products/${row.id}/suppliers`)
+  ]);
+
+  if (!resProduct.error && resProduct.data?.data) {
+    // Merge so we don't lose properties like uom_name and category_name that came from row
+    selectedProduct.value = { ...row, ...resProduct.data.data };
   }
+  if (!resUoms.error && resUoms.data?.data) {
+    productUoms.value = resUoms.data.data;
+  }
+  if (!resSuppliers.error && resSuppliers.data?.data) {
+    productSuppliers.value = resSuppliers.data.data;
+  }
+  
   loading.value = false;
+};
+
+const formatCurrency = (value: number | string) => {
+  if (!value) return "Rp 0";
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(num);
 };
 
 const options = {
@@ -117,11 +148,14 @@ const options = {
     <PageHeader :title="title" icon="i-tabler:package" />
     <PageBody>
       <DataTable3 ref="tableRef" :options="options">
+        <template #cell-name="{ row }">
+          {{ row.name + " " + (row.variant || '') }}
+        </template>
         <template #cell-category_id="{ row }">
-          {{ row.category?.name || '-' }}
+          {{ row.category_name || '-' }}
         </template>
         <template #cell-base_uom_id="{ row }">
-          {{ row.base_uom?.name || '-' }}
+          {{ row.uom_name || '-' }}
         </template>
         <template #cell-is_stockable="{ value }">
           <span :class="value ? 'text-success' : 'text-danger'">
@@ -169,7 +203,7 @@ const options = {
 
     <!-- Detail Modal -->
     <div ref="detailModalEl" class="modal fade" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content rounded-1">
           <div class="modal-header">
             <h5 class="modal-title d-flex align-items-center">
@@ -183,84 +217,186 @@ const options = {
               aria-label="Close"
             ></button>
           </div>
-          <div class="modal-body">
-            <div v-if="loading && !selectedProduct" class="text-center py-4">
+          <div class="modal-body p-0">
+            <div v-if="loading && !selectedProduct" class="text-center py-5">
               <div class="spinner-border text-primary" role="status"></div>
               <div class="mt-2 text-secondary">Loading...</div>
             </div>
-            <div v-else-if="selectedProduct" class="row g-3">
-              <!-- Left Column: Details Table -->
-              <div class="col-md-8 col-sm-12">
-                <table class="table table-borderless table-sm mb-0">
-                  <tbody>
-                    <tr>
-                      <td class="fw-bold text-muted" style="width: 180px">SKU</td>
-                      <td>{{ selectedProduct.sku }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Barcode</td>
-                      <td>{{ selectedProduct.barcode || '-' }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Name</td>
-                      <td>{{ selectedProduct.name }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Category</td>
-                      <td>{{ selectedProduct.category?.name || '-' }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Base UOM</td>
-                      <td>{{ selectedProduct.base_uom?.name || '-' }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Stockable</td>
-                      <td>
-                        <span :class="selectedProduct.is_stockable ? 'text-success' : 'text-danger'">
-                          {{ selectedProduct.is_stockable ? 'Yes' : 'No' }}
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Dimensions (L x W x H)</td>
-                      <td>{{ selectedProduct.length }} x {{ selectedProduct.width }} x {{ selectedProduct.height }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Weight</td>
-                      <td>{{ selectedProduct.weight }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Stackable</td>
-                      <td>
-                        <span :class="selectedProduct.is_stackable ? 'text-success' : 'text-danger'">
-                          {{ selectedProduct.is_stackable ? 'Yes' : 'No' }}
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Max Stack Layer</td>
-                      <td>{{ selectedProduct.max_stack_layer }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Created At</td>
-                      <td>{{ formatDate(selectedProduct.created_at) }}</td>
-                    </tr>
-                    <tr>
-                      <td class="fw-bold text-muted">Updated At</td>
-                      <td>{{ formatDate(selectedProduct.updated_at) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <div v-else-if="selectedProduct" class="p-4">
+              <div class="row g-4">
+                <!-- Left Column: Details Table -->
+                <div class="col-md-8 col-sm-12">
+                  <h5 class="fw-bold text-muted border-bottom pb-2 mb-3">Informasi Umum</h5>
+                  <div class="table-responsive border rounded-1">
+                    <table class="table table-vcenter card-table mb-0 table-sm">
+                      <tbody>
+                        <tr>
+                          <td class="fw-bold text-muted" style="width: 30%">SKU</td>
+                          <td>{{ selectedProduct.sku }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Barcode</td>
+                          <td>{{ selectedProduct.barcode || '-' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Name</td>
+                          <td class="fw-bold">{{ selectedProduct.name }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Category</td>
+                          <td>{{ selectedProduct.category_name || '-' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Base UOM</td>
+                          <td><span class="badge bg-blue-lt">{{ selectedProduct.uom_name || '-' }}</span></td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Stockable</td>
+                          <td>
+                            <span :class="selectedProduct.is_stockable ? 'badge bg-success-lt text-success' : 'badge bg-danger-lt text-danger'">
+                              {{ selectedProduct.is_stockable ? 'Yes' : 'No' }}
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Dimensions (L x W x H)</td>
+                          <td>{{ selectedProduct.length }} x {{ selectedProduct.width }} x {{ selectedProduct.height }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Weight</td>
+                          <td>{{ selectedProduct.weight }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Stackable</td>
+                          <td>
+                            <span :class="selectedProduct.is_stackable ? 'badge bg-success-lt text-success' : 'badge bg-danger-lt text-danger'">
+                              {{ selectedProduct.is_stackable ? 'Yes' : 'No' }}
+                            </span>
+                            <span v-if="selectedProduct.is_stackable" class="text-muted ms-2 small">(Max: {{ selectedProduct.max_stack_layer }})</span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Taxable</td>
+                          <td>
+                            <span :class="selectedProduct.is_taxable ? 'badge bg-success-lt text-success' : 'badge bg-danger-lt text-danger'">
+                              {{ selectedProduct.is_taxable ? 'Yes' : 'No' }}
+                            </span>
+                            <span v-if="selectedProduct.is_taxable && selectedProduct.tax_name" class="badge bg-purple-lt ms-2">
+                              {{ selectedProduct.tax_name }}
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
-              <!-- Right Column: Product Photo Skeleton -->
-              <div class="col-md-4 col-sm-12 d-flex flex-column align-items-center justify-content-center">
-                <div class="product-image-skeleton w-100 d-flex flex-column align-items-center justify-content-center border border-dashed rounded bg-light text-muted p-4" style="aspect-ratio: 1; min-height: 200px;">
-                  <Icon name="i-tabler:photo" class="icon icon-lg mb-2 text-secondary" style="font-size: 3rem;" />
-                  <span class="fs-6 fw-medium text-secondary">Product Photo</span>
-                  <span class="text-muted small">Placeholder</span>
+                <!-- Right Column: Product Photo Skeleton -->
+                <div class="col-md-4 col-sm-12">
+                  <h5 class="fw-bold text-muted border-bottom pb-2 mb-3">Foto Produk</h5>
+                  <div class="product-image-skeleton w-100 d-flex flex-column align-items-center justify-content-center border border-dashed rounded text-muted p-4 h-100" style="aspect-ratio: 1; min-height: 200px; max-height: 250px;">
+                    <Icon name="i-tabler:photo" class="icon icon-lg mb-2 text-secondary" style="font-size: 3rem;" />
+                    <span class="small">No Photo Available</span>
+                  </div>
                 </div>
               </div>
+
+              <!-- Bottom Section: UOM Conversions -->
+              <div class="row mt-4">
+                <div class="col-12">
+                  <h5 class="fw-bold text-muted border-bottom pb-2 mb-3">Konversi Satuan (UOM)</h5>
+                  <div class="table-responsive border rounded-1">
+                    <table class="table table-vcenter card-table mb-0 table-sm">
+                      <thead>
+                        <tr>
+                          <th>Satuan (UOM)</th>
+                          <th>Konversi ke Base</th>
+                          <th>Barcode</th>
+                          <th>Dimensi (P x L x T)</th>
+                          <th>Berat</th>
+                          <th class="text-center">Stackable</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-if="loading && productUoms.length === 0">
+                          <td colspan="6" class="text-center text-muted py-3">
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span> Loading UOMs...
+                          </td>
+                        </tr>
+                        <tr v-else-if="productUoms.length === 0">
+                          <td colspan="6" class="text-center text-muted py-4">
+                            <Icon name="i-tabler:info-circle" class="me-1" /> Tidak ada konversi satuan untuk produk ini.
+                          </td>
+                        </tr>
+                        <tr v-for="uom in productUoms" :key="uom.id">
+                          <td class="fw-bold text-primary">{{ uom.uom?.name || uom.uom_id }}</td>
+                          <td><span class="badge bg-secondary-lt">1 {{ uom.uom?.name }} = {{ uom.conversion_rate }} {{ selectedProduct.uom_name }}</span></td>
+                          <td>{{ uom.barcode || '-' }}</td>
+                          <td>{{ uom.length }} x {{ uom.width }} x {{ uom.height }}</td>
+                          <td>{{ uom.weight }}</td>
+                          <td class="text-center">
+                            <span :class="uom.is_stackable ? 'badge bg-success-lt text-success' : 'badge bg-danger-lt text-danger'">
+                              {{ uom.is_stackable ? 'Yes' : 'No' }}
+                            </span>
+                            <div v-if="uom.is_stackable" class="text-muted small mt-1">Max: {{ uom.max_stack_layer }}</div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>              <!-- Bottom Section: Suppliers -->
+              <div class="row mt-4">
+                <div class="col-12">
+                  <h5 class="fw-bold text-muted border-bottom pb-2 mb-3">Informasi Supplier</h5>
+                  <div class="table-responsive border rounded-1">
+                    <table class="table table-vcenter card-table mb-0 table-sm">
+                      <thead>
+                        <tr>
+                          <th>Supplier</th>
+                          <th>Toko / Cabang</th>
+                          <th>Supplier SKU</th>
+                          <th>Lead Time</th>
+                          <th>Harga (Offered)</th>
+                          <th>MOQ</th>
+                          <th class="text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-if="loading && productSuppliers.length === 0">
+                          <td colspan="7" class="text-center text-muted py-3">
+                            <span class="spinner-border spinner-border-sm me-2" role="status"></span> Loading Suppliers...
+                          </td>
+                        </tr>
+                        <tr v-else-if="productSuppliers.length === 0">
+                          <td colspan="7" class="text-center text-muted py-4">
+                            <Icon name="i-tabler:info-circle" class="me-1" /> Tidak ada informasi supplier untuk produk ini.
+                          </td>
+                        </tr>
+                        <tr v-for="supplier in productSuppliers" :key="supplier.id">
+                          <td class="fw-bold">
+                            <span v-if="supplier.supplier?.code" class="text-muted fw-normal">[ {{ supplier.supplier.code }} ]</span> 
+                            {{ supplier.supplier?.name || '-' }}
+                          </td>
+                          <td>{{ supplier.store?.name || 'Nasional' }}</td>
+                          <td>{{ supplier.supplier_sku || '-' }}</td>
+                          <td>{{ supplier.default_lead_time_days }} hari</td>
+                          <td>{{ formatCurrency(supplier.offered_price) }}</td>
+                          <td>{{ supplier.min_order_qty }}</td>
+                          <td class="text-center">
+                            <span v-if="supplier.is_primary" class="badge bg-blue-lt mb-1 d-block">Utama</span>
+                            <span v-if="supplier.is_consignment" class="badge bg-purple-lt mb-1 d-block">Konsinyasi</span>
+                            <span v-if="supplier.is_returnable" class="badge bg-teal-lt d-block">Bisa Retur</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-5 text-muted">
+              Data not found.
             </div>
           </div>
           <div class="modal-footer">

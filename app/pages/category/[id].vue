@@ -12,6 +12,8 @@ interface Category {
   parent: Category | null;
   name: string;
   slug: string;
+  code: string;
+  sequence: number;
   default_markup_pct: number;
 }
 
@@ -26,6 +28,8 @@ const dataForm = ref<Category>({
   parent: null,
   name: "",
   slug: "",
+  code: "",
+  sequence: 0,
   default_markup_pct: 0,
 });
 
@@ -35,6 +39,8 @@ const mapCategoryForm = (data: Category): Category => ({
   parent: data.parent ? mapCategoryForm(data.parent) : null,
   name: data.name,
   slug: data.slug,
+  code: data.code,
+  sequence: data.sequence,
   default_markup_pct: data.default_markup_pct,
 })
 
@@ -90,6 +96,20 @@ const onSubmit = async () => {
               type="text"
               placeholder="Input slug"
               :error="formatError('Slug','slug')"
+            />
+            <ui-input2
+              v-model="dataForm.code"
+              label="Code"
+              type="text"
+              placeholder="Input 3-letter code"
+              :error="formatError('Code','code')"
+            />
+            <ui-input2
+              v-model="dataForm.sequence"
+              label="Sequence"
+              type="number"
+              placeholder="0"
+              :error="formatError('Sequence','sequence')"
             />
             <ui-SelectSearch4
               v-model="dataForm.parent_id"

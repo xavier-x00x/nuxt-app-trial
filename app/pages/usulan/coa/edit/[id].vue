@@ -12,13 +12,10 @@ if (error.value || !resp.value?.data) {
 }
 </script>
 <template>
-  <UsulanForm
+  <UsulanCoaForm
     v-if="resp?.data"
     :id="id"
     :proposal="resp.data"
     :title="title"
-    icon="i-tabler:book"
-    entity-type="CHART_OF_ACCOUNT"
-    base-path="/usulan/coa"
   />
 </template>

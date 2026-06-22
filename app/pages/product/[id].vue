@@ -11,10 +11,11 @@ interface Product {
   sku: string;
   barcode: string;
   name: string;
+  variant: string | null;
   category_id: string;
-  category: { name: string } | null;
+  category_name: string | null;
   base_uom_id: string;
-  base_uom: { name: string } | null;
+  uom_name: string | null;
   is_stockable: boolean;
   length: number;
   width: number;
@@ -22,6 +23,9 @@ interface Product {
   weight: number;
   is_stackable: boolean;
   max_stack_layer: number;
+  is_taxable: boolean;
+  tax_id: string;
+  tax_name: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,10 +52,11 @@ const tableData = computed(() => {
   if (!product.value) return [];
   return [
     { label: "Product Name", group: "General", unit: "-", value: product.value.name },
+    { label: "Variant", group: "General", unit: "-", value: product.value.variant || '-' },
     { label: "SKU Number", group: "General", unit: "-", value: product.value.sku },
     { label: "Barcode", group: "General", unit: "-", value: product.value.barcode || '-' },
-    { label: "Category", group: "General", unit: "-", value: product.value.category?.name || '-' },
-    { label: "Base Unit of Measure (UOM)", group: "General", unit: "-", value: product.value.base_uom?.name || '-' },
+    { label: "Category", group: "General", unit: "-", value: product.value.category_name || '-' },
+    { label: "Base Unit of Measure (UOM)", group: "General", unit: "-", value: product.value.uom_name || '-' },
     { label: "Stockable Item", group: "Inventory", unit: "Boolean", value: product.value.is_stockable ? 'Yes' : 'No' },
     { label: "Physical Length", group: "Physical", unit: "cm", value: String(product.value.length) },
     { label: "Physical Width", group: "Physical", unit: "cm", value: String(product.value.width) },
@@ -59,6 +64,8 @@ const tableData = computed(() => {
     { label: "Product Weight", group: "Physical", unit: "kg", value: String(product.value.weight) },
     { label: "Stackable Item", group: "Storage", unit: "Boolean", value: product.value.is_stackable ? 'Yes' : 'No' },
     { label: "Max Stack Layer Allowed", group: "Storage", unit: "Layers", value: String(product.value.max_stack_layer) },
+    { label: "Taxable Item", group: "Financial", unit: "Boolean", value: product.value.is_taxable ? 'Yes' : 'No' },
+    { label: "Applied Tax", group: "Financial", unit: "-", value: product.value.tax_name || '-' },
   ];
 });
 
@@ -71,7 +78,7 @@ const reportData = computed(() => {
     createdAt: formatDate(p.created_at),
     productName: p.name,
     productSku: p.sku,
-    categoryName: p.category?.name || '-',
+    categoryName: p.category_name || '-',
   };
   return tableData.value.map((item) => ({ ...base, ...item }));
 });

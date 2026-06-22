@@ -37,7 +37,7 @@ interface ProposalResponse {
 const { data: resp, error } = await useApiFetch<ProposalResponse>(`/master-data/${id.value}`);
 if (error.value || !resp.value) {
   setFlash("Proposal tidak ditemukan", "error");
-  navigateTo("/master-data");
+  navigateTo("/");
 }
 
 const proposal = ref<Proposal>(resp.value!.data);
@@ -54,6 +54,9 @@ const entityColor: Record<string, string> = {
   SUPPLIER: "bg-teal text-white",
   CHART_OF_ACCOUNT: "bg-orange text-white",
   TAX: "bg-pink text-white",
+  PRODUCT_PRICE: "bg-green text-white",
+  PRODUCT_UOM_CONVERSION: "bg-indigo text-white",
+  PRODUCT_SUPPLIER: "bg-purple text-white",
 };
 
 const actionColor: Record<string, string> = {
@@ -73,6 +76,19 @@ const editPath = computed(() => {
     PRODUCT_SUPPLIER: `/usulan/product-supplier/edit/${id.value}`,
   };
   return map[proposal.value.entity_type] || null;
+});
+
+const backPath = computed(() => {
+  const map: Record<string, string> = {
+    PRODUCT: "/usulan/product",
+    SUPPLIER: "/usulan/supplier",
+    CHART_OF_ACCOUNT: "/usulan/coa",
+    TAX: "/usulan/tax",
+    PRODUCT_PRICE: "/usulan/product-price",
+    PRODUCT_UOM_CONVERSION: "/usulan/product-uom",
+    PRODUCT_SUPPLIER: "/usulan/product-supplier",
+  };
+  return map[proposal.value.entity_type] || "/";
 });
 
 const parsedPayloads = computed(() => {
@@ -109,8 +125,8 @@ const entityFields: Record<string, FieldDef[]> = {
     { key: "sku", label: "SKU" },
     { key: "barcode", label: "Barcode" },
     { key: "name", label: "Name" },
-    { key: "category_id", label: "Kategori" },
-    { key: "base_uom_id", label: "Satuan Dasar" },
+    { key: "category_id_text", label: "Kategori" },
+    { key: "base_uom_id_text", label: "Satuan Dasar" },
     { key: "length", label: "Panjang" },
     { key: "width", label: "Lebar" },
     { key: "height", label: "Tinggi" },
@@ -157,7 +173,7 @@ const entityFields: Record<string, FieldDef[]> = {
     { key: "discount_pct", label: "Discount %" },
   ],
   PRODUCT_UOM_CONVERSION: [
-    { key: "product_id", label: "Product" },
+    { key: "product_id_text", label: "Product" },
     { key: "conversion_rate", label: "Conversion Rate" },
     { key: "barcode", label: "Barcode" },
     { key: "length", label: "Length" },
@@ -214,7 +230,23 @@ const getChangedFields = (payload: any, snapshot: any, entityType: string) => {
       const newValue = payload[def.key];
       const hasSnapshot = snapshot && typeof snapshot === "object";
       
-      const changed = hasSnapshot ? JSON.stringify(oldValue) !== JSON.stringify(newValue) : true;
+      let changed = false;
+      if (hasSnapshot) {
+        // Compare values smartly (e.g. "0.00" vs 0)
+        if (oldValue !== newValue) {
+          if (oldValue == newValue) {
+            // Loose equality matches (e.g. "0" == 0), so it's not actually changed
+            changed = false;
+          } else if (!isNaN(Number(oldValue)) && !isNaN(Number(newValue)) && Number(oldValue) === Number(newValue)) {
+            // Both are numbers and have the same value (e.g. "0.00" == 0)
+            changed = false;
+          } else {
+            changed = JSON.stringify(oldValue) !== JSON.stringify(newValue);
+          }
+        }
+      } else {
+        changed = true;
+      }
 
       return {
         key: def.key,
@@ -320,7 +352,9 @@ const submitReview = async () => {
 
   if (reviewSuccess.value) {
     reviewModal.value?.hide();
-    if (response?.data) {
+    if (response?.data?.data) {
+      proposal.value = response.data.data;
+    } else if (response?.data) {
       proposal.value = response.data;
     } else {
       proposal.value.status = reviewAction.value;
@@ -348,7 +382,7 @@ const executeProposal = async () => {
 <template>
   <div>
     <PageHeader :title="`Proposal: ${proposal.reference_number}`" icon="i-tabler:file-check">
-      <ui-button-back to="/master-data" />
+      <ui-button-back :to="backPath" />
     </PageHeader>
     <PageBody>
       <div class="row justify-content-center">
@@ -372,22 +406,22 @@ const executeProposal = async () => {
               </div>
               
               <div class="row g-4">
-                <!-- Row 1: Entity Type & Action -->
-                <div class="col-md-3 col-sm-6">
+                <!-- Row 1: Entity Type, Action, Total Items -->
+                <div class="col-lg-4 col-md-6 col-sm-12">
                   <div class="d-flex align-items-center">
                     <div class="bg-blue-lt p-3 rounded-3 me-3 d-flex align-items-center justify-content-center">
                       <Icon name="i-tabler:database" class="text-blue fs-3" />
                     </div>
                     <div>
                       <div class="text-muted small">Entity Type</div>
-                      <span :class="['badge font-weight-medium px-2 py-1 mt-1', entityColor[proposal.entity_type] || 'bg-secondary']">
+                      <span :class="['badge font-weight-medium px-2 py-1 mt-1 text-wrap', entityColor[proposal.entity_type] || 'bg-secondary']">
                         {{ proposal.entity_type }}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div class="col-md-3 col-sm-6">
+                <div class="col-lg-4 col-md-6 col-sm-12">
                   <div class="d-flex align-items-center">
                     <div class="bg-purple-lt p-3 rounded-3 me-3 d-flex align-items-center justify-content-center">
                       <Icon name="i-tabler:activity" class="text-purple fs-3" />
@@ -401,7 +435,7 @@ const executeProposal = async () => {
                   </div>
                 </div>
 
-                <div class="col-md-3 col-sm-6">
+                <div class="col-lg-4 col-md-6 col-sm-12">
                   <div class="d-flex align-items-center">
                     <div class="bg-teal-lt p-3 rounded-3 me-3 d-flex align-items-center justify-content-center">
                       <Icon name="i-tabler:list-details" class="text-teal fs-3" />
@@ -413,7 +447,8 @@ const executeProposal = async () => {
                   </div>
                 </div>
 
-                <div class="col-md-3 col-sm-6">
+                <!-- Row 2: Proposed At, Proposed By, Reason -->
+                <div class="col-lg-4 col-md-6 col-sm-12">
                   <div class="d-flex align-items-center">
                     <div class="bg-pink-lt p-3 rounded-3 me-3 d-flex align-items-center justify-content-center">
                       <Icon name="i-tabler:calendar" class="text-pink fs-3" />
@@ -425,7 +460,7 @@ const executeProposal = async () => {
                   </div>
                 </div>
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-lg-4 col-md-6 col-sm-12">
                   <div class="d-flex align-items-center">
                     <div class="bg-indigo-lt p-3 rounded-3 me-3 d-flex align-items-center justify-content-center">
                       <Icon name="i-tabler:user" class="text-indigo fs-3" />
@@ -437,7 +472,7 @@ const executeProposal = async () => {
                   </div>
                 </div>
 
-                <div class="col-md-6 col-sm-12">
+                <div class="col-lg-4 col-md-6 col-sm-12">
                   <div class="d-flex align-items-center">
                     <div class="bg-orange-lt p-3 rounded-3 me-3 d-flex align-items-center justify-content-center">
                       <Icon name="i-tabler:note" class="text-orange fs-3" />

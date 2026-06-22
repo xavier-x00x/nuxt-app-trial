@@ -12,6 +12,8 @@ interface DataList {
   parent: { name: string } | null;
   name: string;
   slug: string;
+  code: string;
+  sequence: number;
   default_markup_pct: number;
   created_at: string;
   updated_at: string;
@@ -29,6 +31,16 @@ const columns: ColumnConfig[] = [
   {
     key: "slug",
     label: "Slug",
+  },
+  {
+    key: "code",
+    label: "Code",
+    className: "text-center",
+  },
+  {
+    key: "sequence",
+    label: "Sequence",
+    className: "text-center",
   },
   {
     key: "parent_id",

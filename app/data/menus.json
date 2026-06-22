@@ -62,6 +62,11 @@
         "title": "Price Lists",
         "to": "/price-list",
         "permission": "price-list:view"
+      },
+      {
+        "title": "Taxes",
+        "to": "/tax",
+        "permission": "taxes:view"
       }
     ]
   },
@@ -95,16 +100,6 @@
     "permission": "master-data:view",
     "childs": [
       {
-        "title": "Produk",
-        "to": "/usulan/product",
-        "permission": "master-data:view"
-      },
-      {
-        "title": "Supplier",
-        "to": "/usulan/supplier",
-        "permission": "master-data:view"
-      },
-      {
         "title": "Akun",
         "to": "/usulan/coa",
         "permission": "master-data:view"
@@ -115,8 +110,13 @@
         "permission": "master-data:view"
       },
       {
-        "title": "Harga Jual",
-        "to": "/usulan/product-price",
+        "title": "Supplier",
+        "to": "/usulan/supplier",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Produk",
+        "to": "/usulan/product",
         "permission": "master-data:view"
       },
       {
@@ -127,6 +127,11 @@
       {
         "title": "Kontrak Supplier",
         "to": "/usulan/product-supplier",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Harga Jual",
+        "to": "/usulan/product-price",
         "permission": "master-data:view"
       }
     ]
