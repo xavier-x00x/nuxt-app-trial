@@ -97,6 +97,41 @@ const options = {
   showActions: true,
   actionWidth: "15%",
 };
+
+const dataTableRef = ref<any>(null);
+const { submitForm, success: deleteSuccess } = useForm2();
+
+const deleteModalEl = ref<HTMLElement | null>(null);
+const deleteModal = ref<any>(null);
+const proposalToDelete = ref<DataList | null>(null);
+const deleteLoading = ref(false);
+
+const deleteProposal = (row: DataList) => {
+  proposalToDelete.value = row;
+  if (import.meta.client) {
+    const bootstrap = (window as any).bootstrap;
+    if (bootstrap && deleteModalEl.value && !deleteModal.value) {
+      deleteModal.value = new bootstrap.Modal(deleteModalEl.value);
+    }
+  }
+  deleteModal.value?.show();
+};
+
+const submitDelete = async () => {
+  if (!proposalToDelete.value) return;
+  deleteLoading.value = true;
+  try {
+    await submitForm(`/master-data/${proposalToDelete.value.id}`, { method: "DELETE" });
+    if (deleteSuccess.value) {
+      deleteModal.value?.hide();
+      if (dataTableRef.value) {
+        dataTableRef.value.reload();
+      }
+    }
+  } finally {
+    deleteLoading.value = false;
+  }
+};
 </script>
 <template>
   <div>
@@ -110,7 +145,7 @@ const options = {
       </NuxtLink>
     </PageHeader>
     <PageBody>
-      <DataTable3 :options="options" :filter-params="filterParams">
+      <DataTable3 ref="dataTableRef" :options="options" :filter-params="filterParams">
         <template #filter-popup>
           <div class="mb-2">
             <label class="form-label">Status</label>
@@ -166,9 +201,57 @@ const options = {
               <Icon name="i-tabler:pencil" class="icon icon-2" />
               Edit
             </NuxtLink>
+            <button
+              v-if="row.status === 'PENDING'"
+              type="button"
+              class="btn btn-sm btn-danger py-1 px-2 rounded-1 text-nowrap"
+              @click="deleteProposal(row as DataList)"
+            >
+              <Icon name="i-tabler:trash" class="icon icon-2 text-white" />
+              Hapus
+            </button>
           </div>
         </template>
       </DataTable3>
     </PageBody>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal modal-blur fade" id="delete-modal" tabindex="-1" role="dialog" aria-hidden="true" ref="deleteModalEl">
+      <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content shadow-sm">
+          <div class="modal-header bg-danger-lt border-0">
+            <h5 class="modal-title d-flex align-items-center fw-bold text-danger">
+              <Icon name="i-tabler:alert-triangle" class="icon me-2 icon-2" />
+              Hapus Usulan
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mb-3">
+              <Icon name="i-tabler:trash" class="text-danger" style="font-size: 3rem;" />
+            </div>
+            <div class="fw-bold mb-2">Konfirmasi Hapus</div>
+            <div class="text-muted small">
+              Apakah Anda yakin ingin menghapus usulan dengan referensi <strong v-if="proposalToDelete">{{ proposalToDelete.reference_number }}</strong>?<br/>
+              Tindakan ini tidak dapat dibatalkan.
+            </div>
+          </div>
+          <div class="modal-footer bg-body-secondary border-0">
+            <button type="button" class="btn btn-outline-secondary rounded-1" data-bs-dismiss="modal">
+              Batal
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger rounded-1 px-3"
+              :disabled="deleteLoading"
+              @click="submitDelete"
+            >
+              <span v-if="deleteLoading" class="spinner-border spinner-border-sm me-1" role="status"></span>
+              Hapus
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>

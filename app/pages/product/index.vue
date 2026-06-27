@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import type { Column } from "~/components/DataTable3.vue";
 
+const authStore = useAuthStore();
 const { openConfirmDelete } = useConfirmDelete();
 const title = "Product Management";
 useHead({ title });
@@ -85,6 +86,7 @@ const deleteItem = async (id: string) => {
 const selectedProduct = ref<DataList | null>(null);
 const productUoms = ref<any[]>([]);
 const productSuppliers = ref<any[]>([]);
+const sellPriceForStore = ref<number | null>(null);
 const loading = ref(false);
 const detailModalEl = ref<HTMLElement | null>(null);
 const detailModal = ref<any>(null);
@@ -104,10 +106,11 @@ const showDetail = async (row: DataList) => {
 
   detailModal.value?.show();
 
-  const [resProduct, resUoms, resSuppliers] = await Promise.all([
+  const [resProduct, resUoms, resSuppliers, resPrices] = await Promise.all([
     useApi<{ data: DataList }>(`/products/${row.id}`),
     useApi<{ data: any[] }>(`/product-uoms/product/${row.id}`),
-    useApi<{ data: any[] }>(`/products/${row.id}/suppliers`)
+    useApi<{ data: any[] }>(`/products/${row.id}/suppliers`),
+    useApi<{ data: any[] }>(`/product-prices/product/${row.id}`)
   ]);
 
   if (!resProduct.error && resProduct.data?.data) {
@@ -121,6 +124,16 @@ const showDetail = async (row: DataList) => {
     productSuppliers.value = resSuppliers.data.data;
   }
   
+  sellPriceForStore.value = null;
+  if (!resPrices.error && resPrices.data?.data && authStore.user?.store_id) {
+    const storePrice = resPrices.data.data.find(
+      (p) => p.price_list && p.price_list.store_id === authStore.user?.store_id
+    );
+    if (storePrice) {
+      sellPriceForStore.value = storePrice.sell_price;
+    }
+  }
+
   loading.value = false;
 };
 
@@ -249,6 +262,13 @@ const options = {
                         <tr>
                           <td class="fw-bold text-muted">Base UOM</td>
                           <td><span class="badge bg-blue-lt">{{ selectedProduct.uom_name || '-' }}</span></td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Sell Price</td>
+                          <td>
+                            <span v-if="sellPriceForStore !== null" class="fw-bold text-success">{{ formatCurrency(sellPriceForStore) }}</span>
+                            <span v-else class="text-muted italic">-</span>
+                          </td>
                         </tr>
                         <tr>
                           <td class="fw-bold text-muted">Stockable</td>

@@ -170,7 +170,6 @@ const entityFields: Record<string, FieldDef[]> = {
   PRODUCT_PRICE: [
     { key: "price_list_id", label: "Price List" },
     { key: "sell_price", label: "Sell Price" },
-    { key: "discount_pct", label: "Discount %" },
   ],
   PRODUCT_UOM_CONVERSION: [
     { key: "product_id_text", label: "Product" },
@@ -312,6 +311,34 @@ const getPayloadFields = (payload: any, entityType: string) => {
       label: formatFieldLabel(key),
       value: val,
     }));
+};
+
+const formatValue = (key: string, value: any) => {
+  if (value === null || value === undefined || value === "") return "-";
+  if (['sell_price', 'offered_price', 'min_order_amount'].includes(key) && !isNaN(Number(value))) {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(value));
+  }
+  return String(value);
+};
+
+const getItemTitle = (idx: number, item: any, entityType: string) => {
+  const payload = parsedPayloads.value[idx] || {};
+  const snapshot = parsedSnapshots.value[idx] || {};
+  const data = proposal.value?.action_type === 'DELETE' ? snapshot : payload;
+
+  let title = `ID: ${item.entity_id}`;
+
+  if (entityType === 'PRODUCT_PRICE') {
+    title = data.product_id_text || data.product_id || title;
+  } else if (entityType === 'PRODUCT') {
+    title = `${data.sku || ''} ${data.name || ''}`.trim() || title;
+  } else if (entityType === 'PRODUCT_UOM_CONVERSION') {
+    title = data.product_id_text || data.product_id || title;
+  } else if (data.name) {
+    title = data.account_code ? `${data.account_code} ${data.name}` : data.name;
+  }
+
+  return title;
 };
 
 const showAllFields = ref(false);
@@ -492,8 +519,8 @@ const executeProposal = async () => {
             <div class="card-header d-flex justify-content-between align-items-center bg-transparent border-bottom">
               <h3 class="card-title text-muted mb-0">
                 Item #{{ item.seq_no }} 
-                <span v-if="item.entity_id" class="ms-2 badge bg-secondary-lt fs-5 font-monospace">
-                  ID: {{ item.entity_id }}
+                <span v-if="item.entity_id || getItemTitle(idx, item, proposal.entity_type) !== `ID: ${item.entity_id}`" class="ms-2 badge bg-secondary-lt fs-5 font-monospace">
+                  {{ getItemTitle(idx, item, proposal.entity_type) }}
                 </span>
               </h3>
               <button 
@@ -526,14 +553,14 @@ const executeProposal = async () => {
                           <span v-if="field.changed" class="badge bg-warning-lt text-warning ms-2 font-weight-medium">Changed</span>
                         </td>
                         <td>
-                          <span v-if="field.oldValue !== null && field.oldValue !== undefined">
-                            <span class="text-decoration-line-through text-danger me-2">{{ String(field.oldValue) }}</span>
+                          <span v-if="field.oldValue !== null && field.oldValue !== undefined && field.oldValue !== ''">
+                            <span class="text-decoration-line-through text-danger me-2">{{ formatValue(field.key, field.oldValue) }}</span>
                           </span>
                           <span v-else class="text-muted small italic">-</span>
                         </td>
                         <td>
                           <span :class="[field.changed ? 'text-success fw-bold' : '']">
-                            {{ field.newValue !== null && field.newValue !== undefined ? String(field.newValue) : '-' }}
+                            {{ formatValue(field.key, field.newValue) }}
                           </span>
                         </td>
                       </tr>
@@ -557,7 +584,7 @@ const executeProposal = async () => {
                         <td class="text-muted">{{ field.label }}</td>
                         <td class="font-weight-medium">
                           <span :class="proposal.action_type === 'DELETE' ? 'text-decoration-line-through text-danger' : 'text-success'">
-                            {{ field.value !== null && field.value !== undefined ? String(field.value) : '-' }}
+                            {{ formatValue(field.key, field.value) }}
                           </span>
                         </td>
                       </tr>

@@ -26,6 +26,7 @@
         :class="[
           'form-control rounded-1 text-end',
           { 'is-invalid': !!error },
+          { 'bg-body-secondary text-muted': readonly },
           iclass
         ]"
         :placeholder="placeholder"
@@ -45,6 +46,7 @@
         :class="[
           'form-control rounded-1',
           { 'is-invalid': !!error },
+          { 'bg-body-secondary text-muted': readonly },
           iclass
         ]"
         :placeholder="placeholder"

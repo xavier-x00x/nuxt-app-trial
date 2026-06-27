@@ -46,11 +46,10 @@
       </span>
     </div>
 
-    <!-- Dropdown Menu -->
     <div 
       v-if="isOpen"
-      :class="['dropdown-menu w-100 p-0 show shadow-sm border', { 'dropup-active': dropup }]"
-      :style="{ zIndex: 1050 }"
+      :class="['dropdown-menu p-0 show shadow-sm border', { 'dropup-active': dropup }]"
+      :style="{ zIndex: 1050, minWidth: '100%', whiteSpace: 'nowrap' }"
     >
       <!-- Search Input inside dropdown -->
       <div class="p-0 border-bottom dropdown-search-header">
