@@ -62,6 +62,7 @@ const columns: Column<DataList>[] = [
 
 defineSlots<{
   'filter-popup'?: (props: {}) => any;
+  'actions'?: (props: { reload: () => void }) => any;
 }>();
 
 const entityEditBase: Record<string, string> = {
@@ -136,6 +137,7 @@ const submitDelete = async () => {
 <template>
   <div>
     <PageHeader :title="title" :icon="icon">
+      <slot name="actions" :reload="() => dataTableRef?.reload()" />
       <NuxtLink
         :to="`${basePath}/new`"
         class="btn btn-primary rounded-1 d-none d-sm-inline-block"
