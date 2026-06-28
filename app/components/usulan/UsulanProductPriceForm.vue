@@ -527,11 +527,11 @@ const onSubmit = async () => {
                 <thead class="table-light border-bottom">
                   <tr>
                     <th style="width: 50px;" class="text-center">#</th>
-                    <th style="min-width: 250px;">Product <span class="text-danger">*</span></th>
-                    <th style="min-width: 200px;">UOM <span class="text-danger">*</span></th>
+                    <th style="min-width: 380px;">Product <span class="text-danger">*</span></th>
+                    <th style="min-width: 170px;">UOM <span class="text-danger">*</span></th>
                     <th style="min-width: 150px;">HPP / Harga Beli</th>
                     <th style="min-width: 150px;">Harga Lama</th>
-                    <th style="min-width: 120px;">Markup %</th>
+                    <th style="min-width: 100px;">Markup %</th>
                     <th style="min-width: 150px;">Saran Harga</th>
                     <th style="min-width: 180px;">Harga Jual <span class="text-danger">*</span></th>
                     <th style="width: 60px;" class="text-center">
@@ -622,6 +622,7 @@ const onSubmit = async () => {
                           v-model="item.markup_pct"
                           type="number"
                           placeholder="%"
+                          :decimal=2
                           :error="formatError(`Markup ${idx + 1}`, `items[${idx}].markup_pct`)"
                         />
                       </td>

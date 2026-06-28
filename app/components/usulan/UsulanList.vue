@@ -190,7 +190,7 @@ const submitDelete = async () => {
           <div class="d-flex gap-1">
             <NuxtLink
               :to="`/master-data/${row.id}`"
-              class="btn btn-sm py-1 px-2 rounded-1 text-nowrap"
+              class="btn btn-sm btn-outline-secondary py-1 px-2 rounded-1 text-nowrap"
             >
               <Icon name="i-tabler:eye" class="icon icon-2" />
               Detail
@@ -198,7 +198,7 @@ const submitDelete = async () => {
             <NuxtLink
               v-if="row.status === 'PENDING'"
               :to="editUrl(row as DataList)"
-              class="btn btn-sm py-1 px-2 rounded-1 text-nowrap"
+              class="btn btn-sm btn-outline-info py-1 px-2 rounded-1 text-nowrap"
             >
               <Icon name="i-tabler:pencil" class="icon icon-2" />
               Edit
@@ -206,10 +206,10 @@ const submitDelete = async () => {
             <button
               v-if="row.status === 'PENDING'"
               type="button"
-              class="btn btn-sm btn-danger py-1 px-2 rounded-1 text-nowrap"
+              class="btn btn-sm btn-outline-danger py-1 px-2 rounded-1 text-nowrap"
               @click="deleteProposal(row as DataList)"
             >
-              <Icon name="i-tabler:trash" class="icon icon-2 text-white" />
+              <Icon name="i-tabler:trash" class="icon icon-2" />
               Hapus
             </button>
           </div>
