@@ -4,6 +4,7 @@ export interface DateFormatOptions {
   locale?: string;
   timeZone?: string;
   preset?: DateFormatPreset;
+  includeTime?: boolean;
   customOptions?: Intl.DateTimeFormatOptions;
 }
 
@@ -44,14 +45,22 @@ const PRESETS: Record<DateFormatPreset, Intl.DateTimeFormatOptions> = {
  */
 export function formatDate(
   value: string | number | Date,
-  options: DateFormatOptions = {}
+  options: DateFormatOptions | DateFormatPreset | boolean = {}
 ): string {
+  let opts: DateFormatOptions = {};
+  if (typeof options === 'boolean') {
+    opts = { includeTime: options, preset: options ? 'datetime' : 'date' };
+  } else if (typeof options === 'string') {
+    opts = { preset: options as DateFormatPreset };
+  } else {
+    opts = options;
+  }
+
   const {
     locale = DEFAULT_LOCALE,
     timeZone = DEFAULT_TIMEZONE,
-    preset = 'datetime',
     customOptions,
-  } = options;
+  } = opts;
 
   if (!value || String(value).startsWith('0001-01-01')) {
     return '-';
@@ -61,6 +70,13 @@ export function formatDate(
 
   if (isNaN(date.getTime())) {
     return 'Invalid Date';
+  }
+
+  let preset = opts.preset;
+  if (opts.includeTime !== undefined) {
+    preset = opts.includeTime ? 'datetime' : 'date';
+  } else if (!preset) {
+    preset = 'datetime';
   }
 
   // Handle relative time
@@ -77,17 +93,28 @@ export function formatDate(
     timeZone,
   });
 
-  // Get formatted parts and manually format to dd/mm/yyyy hh:ii:ss
+  // Get formatted parts
   const parts = formatter.formatToParts(date);
   const partValues: Record<string, string> = {};
   parts.forEach(part => {
     partValues[part.type] = part.value;
   });
 
-  // Build dd/mm/yyyy hh:ii:ss format
   const day = partValues.day || '01';
   const month = partValues.month || '01';
   const year = partValues.year || '1970';
+
+  if (preset === 'date' || opts.includeTime === false) {
+    return `${day}/${month}/${year}`;
+  }
+
+  if (preset === 'time') {
+    const hour = partValues.hour || '00';
+    const minute = partValues.minute || '00';
+    const second = partValues.second || '00';
+    return `${hour}:${minute}:${second}`;
+  }
+
   const hour = partValues.hour || '00';
   const minute = partValues.minute || '00';
   const second = partValues.second || '00';

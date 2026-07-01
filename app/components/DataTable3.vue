@@ -32,6 +32,7 @@ interface Options<T> {
   pathKey: string; // key
   showActions?: boolean;
   actionWidth?: string;
+  selectable?: boolean;
 }
 
 interface Props<T> {
@@ -49,6 +50,7 @@ const props = withDefaults(defineProps<Props<T>>(), {
     pathKey: Math.random().toString(36).slice(2, 9),
     showActions: true,
     actionWidth: "15%",
+    selectable: false,
   }),
   filterParams: () => ({}),
 });
@@ -64,6 +66,7 @@ const options = computed(() => {
     pathKey: opts.pathKey || "default-key",
     showActions: opts.showActions ?? true,
     actionWidth: opts.actionWidth || "15%",
+    selectable: opts.selectable ?? false,
     limit: opts.limit,
   };
 });
@@ -167,7 +170,36 @@ function setSort(col: Column<T>, header: HTMLElement) {
   order_direction.value = sort;
 }
 
-function removeRow(id: number) {
+const selectedRows = ref<T[]>([]) as Ref<T[]>;
+const selectedIds = computed(() => selectedRows.value.map((r) => r.id));
+
+const isAllSelected = computed(() => {
+  if (rows.value.length === 0) return false;
+  return rows.value.every((r) => selectedIds.value.includes(r.id));
+});
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    selectedRows.value = [];
+  } else {
+    selectedRows.value = [...rows.value];
+  }
+};
+
+const toggleSelectRow = (row: T) => {
+  const idx = selectedRows.value.findIndex((r) => r.id === row.id);
+  if (idx !== -1) {
+    selectedRows.value.splice(idx, 1);
+  } else {
+    selectedRows.value.push(row);
+  }
+};
+
+const clearSelection = () => {
+  selectedRows.value = [];
+};
+
+function removeRow(id: number | string) {
   const index = rows.value.findIndex((r) => r.id === id);
   if (index !== -1) {
     rows.value.splice(index, 1);
@@ -177,11 +209,12 @@ function removeRow(id: number) {
 function reload() {
   page.value = 1;
   rows.value = [];
+  clearSelection();
   hasMore.value = true;
   loadData();
 }
 
-defineExpose({ removeRow, reload });
+defineExpose({ removeRow, reload, selectedRows, selectedIds, clearSelection });
 
 // fetch data di server
 const { data } = await useAsyncData(`data-${options.value.pathKey}`, async () => {
@@ -199,8 +232,11 @@ if (data.value) {
 <template>
   <div>
     <!-- Search & Filter -->
-    <div class="row mb-2">
-      <div class="ms-auto col-sm-12 col-xl-3 col-md-4" > 
+    <div class="row mb-2 align-items-center">
+      <div class="col-sm-12 col-md border-0 d-flex align-items-center gap-2 mb-2 mb-md-0">
+        <slot name="batch-actions" :selected-rows="selectedRows" :selected-ids="selectedIds" :clear-selection="clearSelection" />
+      </div>
+      <div class="col-sm-12 col-xl-4 col-md-5"> 
         <div class="row align-items-center justify-content-end">
           <div v-if="$slots['filter-popup']" class="col-sm-3 col-md-2 text-end py-1">
             <span ref="filterToggleRef" class="text-muted px-1 align-middle" data-bs-toggle="dropdown" data-bs-auto-close="false" aria-expanded="false" role="button" tabindex="0" style="cursor: pointer; line-height: 1;">
@@ -218,11 +254,11 @@ if (data.value) {
               </div>
             </div>
           </div>
-          <div class="col-sm-9 col-xl-8 col-md-8" >
+          <div class="col-sm-9 col-xl-10 col-md-10">
             <input
               v-model="search"
               type="text"
-              class="form-control py-2 px-3 rounded-1 col-7 col-md-8"
+              class="form-control py-2 px-3 rounded-1"
               placeholder="Search"
               autocomplete="off"
             />
@@ -236,6 +272,14 @@ if (data.value) {
       <table class="table table-vcenter table-nowrap">
         <thead class="sticky-top">
           <tr>
+            <ui-th v-if="options.selectable" xwidth="40px" xclass="text-center">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                :checked="isAllSelected"
+                @change="toggleSelectAll"
+              />
+            </ui-th>
             <ui-th xwidth="5%" xclass="text-end">No.</ui-th>
             <ui-th v-if="options.showActions" :xwidth="options.actionWidth" xclass="text-center">
               Aksi
@@ -260,6 +304,14 @@ if (data.value) {
         </thead>
         <tbody>
           <tr v-for="(row, i) in rows" :key="row.id">
+            <td v-if="options.selectable" class="text-center">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                :checked="selectedIds.includes(row.id)"
+                @change="toggleSelectRow(row)"
+              />
+            </td>
             <td class="text-end">{{ i + 1 }}.</td>
             <td v-if="options.showActions" class="text-center py-0">
               <slot name="row-actions" :row="row" />
@@ -282,7 +334,7 @@ if (data.value) {
 
           <tr ref="loadMoreTrigger">
             <td
-              :colspan="options.columns.length + (options.showActions ? 2 : 1)"
+              :colspan="options.columns.length + (options.showActions ? 2 : 1) + (options.selectable ? 1 : 0)"
               class="text-center"
             >
               <span v-if="loading">Memuat data...</span>
