@@ -49,6 +49,23 @@
     ]
   },
   {
+    "title": "Pembelian",
+    "icon": "tabler:shopping-cart",
+    "permission": "",
+    "childs": [
+      {
+        "title": "PO Planning",
+        "to": "/purchase-order/planning",
+        "permission": "purchase-orders:view"
+      },
+      {
+        "title": "Purchase Order",
+        "to": "/purchase-order",
+        "permission": "purchase-orders:view"
+      }
+    ]
+  },
+  {
     "title": "Finance",
     "icon": "tabler:currency-dollar",
     "permission": "",

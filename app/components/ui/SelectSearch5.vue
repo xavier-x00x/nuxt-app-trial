@@ -79,7 +79,7 @@
         @scroll="handleScroll"
       >
         <div
-          v-for="(item, index) in items"
+          v-for="(item, index) in filteredItems"
           :key="String(item[valueKey]) + '_' + index"
           :class="[
             'dropdown-item d-flex align-items-center py-2 px-3',
@@ -101,7 +101,7 @@
 
         <!-- Empty State -->
         <div
-          v-else-if="items.length === 0"
+          v-else-if="filteredItems.length === 0"
           class="dropdown-item text-muted text-center py-3"
         >
           Tidak ada data
@@ -109,7 +109,7 @@
 
         <!-- All Loaded State -->
         <div
-          v-if="items.length > 0 && !loading && !hasMore"
+          v-if="filteredItems.length > 0 && !loading && !hasMore"
           class="dropdown-item text-muted text-center py-2 small"
         >
           Semua data telah dimuat
@@ -149,6 +149,7 @@ interface Props {
   placeholder?: string;
   selectFormat?: (item: T) => string;
   selectedFormat?: (item: T) => string;
+  filterFn?: (item: T) => boolean;
   label?: string;
   error?: string;
   required?: boolean;
@@ -163,6 +164,7 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: "Pilih data...",
   selectFormat: ((item: unknown) => `${(item as any).name || (item as any).id || ""}`) as (item: T) => string,
   selectedFormat: ((item: unknown) => `${(item as any).name || (item as any).id || ""}`) as (item: T) => string,
+  filterFn: undefined,
   label: "",
   error: "",
   required: false,
@@ -190,6 +192,10 @@ const listRef = ref<HTMLElement | null>(null);
 // Data state
 const page = ref(1);
 const items = ref<T[]>([]);
+const filteredItems = computed(() => {
+  if (!props.filterFn) return items.value;
+  return (items.value as T[]).filter(props.filterFn);
+});
 const hasMore = ref(true);
 const loading = ref(false);
 const searchQuery = ref("");
@@ -349,12 +355,12 @@ const openAndFocus = () => {
 };
 
 const navigateItems = (direction: 'next' | 'prev') => {
-  if (items.value.length === 0) return;
+  if (filteredItems.value.length === 0) return;
 
   if (direction === 'next') {
-    activeIndex.value = (activeIndex.value + 1) % items.value.length;
+    activeIndex.value = (activeIndex.value + 1) % filteredItems.value.length;
   } else {
-    activeIndex.value = activeIndex.value <= 0 ? items.value.length - 1 : activeIndex.value - 1;
+    activeIndex.value = activeIndex.value <= 0 ? filteredItems.value.length - 1 : activeIndex.value - 1;
   }
 
   nextTick(() => {
@@ -376,8 +382,8 @@ const navigateItems = (direction: 'next' | 'prev') => {
 };
 
 const selectHighlighted = () => {
-  if (activeIndex.value >= 0 && activeIndex.value < items.value.length) {
-    onSelectItem(items.value[activeIndex.value] as T);
+  if (activeIndex.value >= 0 && activeIndex.value < filteredItems.value.length) {
+    onSelectItem(filteredItems.value[activeIndex.value] as T);
   }
 };
 

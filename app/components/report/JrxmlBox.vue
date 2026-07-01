@@ -245,7 +245,8 @@ function rectFill(p: RectPayload): string {
 function pen(p: LinePayload['pen'] | undefined): string {
   if (!p || !p.lineWidth) return 'none'
   const style = p.lineStyle === 'Dashed' ? 'dashed' : p.lineStyle === 'Dotted' ? 'dotted' : 'solid'
-  return `${p.lineWidth}px ${style} ${p.lineColor}`
+  const w = p.lineWidth <= 1 ? p.lineWidth / 2 : p.lineWidth;
+  return `${w}px ${style} ${p.lineColor}`
 }
 </script>
 
