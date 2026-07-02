@@ -214,7 +214,7 @@ function reload() {
   loadData();
 }
 
-defineExpose({ removeRow, reload, selectedRows, selectedIds, clearSelection });
+defineExpose({ removeRow, reload, selectedRows, selectedIds, clearSelection, rows });
 
 // fetch data di server
 const { data } = await useAsyncData(`data-${options.value.pathKey}`, async () => {
@@ -255,13 +255,24 @@ if (data.value) {
             </div>
           </div>
           <div class="col-sm-9 col-xl-10 col-md-10">
-            <input
-              v-model="search"
-              type="text"
-              class="form-control py-2 px-3 rounded-1"
-              placeholder="Search"
-              autocomplete="off"
-            />
+            <div class="position-relative">
+              <input
+                v-model="search"
+                type="text"
+                class="form-control py-2 ps-3 pe-5 rounded-1"
+                placeholder="Search"
+                autocomplete="off"
+              />
+              <span
+                v-if="search"
+                class="position-absolute top-50 translate-middle-y end-0 me-3 text-muted d-flex align-items-center justify-content-center"
+                style="cursor: pointer;"
+                @click="search = ''"
+                title="Clear search"
+              >
+                <Icon name="i-tabler:x" />
+              </span>
+            </div>
           </div>
         </div>
       </div>
