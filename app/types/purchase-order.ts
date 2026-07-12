@@ -57,6 +57,8 @@ export interface PurchaseOrderDetail {
   expected_delivery?: string;
   payment_term_days: number;
   payment_mode: string;
+  promo_marketing_discount_percentage: number;
+  promo_marketing_discount_amount: number;
   total_amount: number;
   status: string;
   approved_by_id?: string;

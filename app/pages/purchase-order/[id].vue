@@ -301,6 +301,16 @@ const handleCancel = async () => {
                 </tbody>
                 <tfoot>
                   <tr class="bg-light">
+                    <td colspan="6" class="text-end text-muted fw-semibold">Subtotal:</td>
+                    <td class="text-end text-primary fw-semibold">{{ formatCurrency(Number(po.total_amount) + Number(po.promo_marketing_discount_amount || 0)) }}</td>
+                  </tr>
+                  <tr v-if="Number(po.promo_marketing_discount_percentage || 0) > 0" class="bg-light">
+                    <td colspan="6" class="text-end text-danger fw-semibold">
+                      Promo Marketing Discount ({{ po.promo_marketing_discount_percentage }}%):
+                    </td>
+                    <td class="text-end text-danger fw-semibold">-{{ formatCurrency(po.promo_marketing_discount_amount) }}</td>
+                  </tr>
+                  <tr class="bg-light">
                     <td colspan="6" class="text-end text-dark fw-bold fs-5">Total Amount:</td>
                     <td class="text-end fw-bold fs-4 text-success">{{ formatCurrency(po.total_amount) }}</td>
                   </tr>

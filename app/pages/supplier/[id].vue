@@ -24,6 +24,7 @@ interface Supplier {
   country: string
   tax_id: string
   payment_terms: number
+  promo_marketing_discount_percentage: number
   bank_name: string
   bank_account_number: string
   bank_account_holder: string
@@ -67,6 +68,7 @@ function buildRows(s: Supplier): Record<string, unknown>[] {
 
     { label: 'Tax ID (NPWP)', group: 'Tax & Payment', value: dash(s.tax_id) },
     { label: 'Payment Terms', group: 'Tax & Payment', value: s.payment_terms ? `${s.payment_terms} days` : '-' },
+    { label: 'Promo Marketing Discount', group: 'Tax & Payment', value: s.promo_marketing_discount_percentage != null ? `${s.promo_marketing_discount_percentage}%` : '-' },
 
     { label: 'Bank Name', group: 'Banking', value: dash(s.bank_name) },
     { label: 'Account Number', group: 'Banking', value: dash(s.bank_account_number) },

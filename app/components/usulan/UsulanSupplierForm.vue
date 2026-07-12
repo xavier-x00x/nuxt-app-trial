@@ -128,6 +128,12 @@ const entityFields = [
     "col": "col-md-6"
   },
   {
+    "key": "promo_marketing_discount_percentage",
+    "label": "Promo Marketing Discount (%)",
+    "type": "number",
+    "col": "col-md-6"
+  },
+  {
     "key": "bank_name",
     "label": "Bank Name",
     "type": "text",
@@ -158,7 +164,7 @@ const entityFields = [
     "col": "col-md-12"
   }
 ];
-const fieldsKeys = ["code", "name", "contact_person", "contact_phone", "phone_number", "email", "preferred_notification_method", "tax_reg_number", "supplier_category_id", "ap_account_id", "payment_term_days", "payment_mode", "min_order_amount", "bank_name", "bank_account", "bank_account_name", "is_pkp", "address"];
+const fieldsKeys = ["code", "name", "contact_person", "contact_phone", "phone_number", "email", "preferred_notification_method", "tax_reg_number", "supplier_category_id", "ap_account_id", "payment_term_days", "payment_mode", "min_order_amount", "promo_marketing_discount_percentage", "bank_name", "bank_account", "bank_account_name", "is_pkp", "address"];
 
 const parsePayload = (payload: any) => {
   if (!payload) return {};
@@ -544,6 +550,9 @@ const onSubmit = async () => {
                       </div>
                       <div class="col-md-6">
                         <ui-input2 v-model="item.min_order_amount" label="Min Order Amount" type="number" placeholder="Input Min Order Amount" />
+                      </div>
+                      <div class="col-md-6">
+                        <ui-input2 v-model="item.promo_marketing_discount_percentage" label="Promo Marketing Discount (%)" type="number" placeholder="Contoh: 10.5" />
                       </div>
                     </div>
                   </div>

@@ -74,7 +74,12 @@ const loadMasterData = async () => {
     if (poRes.data?.data) {
       const d = poRes.data.data;
       poNumber.value = d.po_number || "";
-      selectedSupplierObj.value = { id: d.supplier_id, name: d.supplier_name, code: d.supplier_code };
+      selectedSupplierObj.value = { 
+        id: d.supplier_id, 
+        name: d.supplier_name, 
+        code: d.supplier_code,
+        promo_marketing_discount_percentage: d.promo_marketing_discount_percentage,
+      };
       form.value = {
         supplier_id: d.supplier_id,
         store_id: d.store_id,
@@ -169,8 +174,18 @@ const calculateSubtotal = (item: any) => {
   return (Number(item.qty_ordered) || 0) * (Number(item.unit_price) || 0);
 };
 
+const promoMarketingDiscountPercentage = computed(() => {
+  return selectedSupplierObj.value?.promo_marketing_discount_percentage || 0;
+});
+
+const promoMarketingDiscountAmount = computed(() => {
+  const subtotal = form.value.items.reduce((acc, item) => acc + calculateSubtotal(item), 0);
+  return (subtotal * promoMarketingDiscountPercentage.value) / 100;
+});
+
 const totalAmount = computed(() => {
-  return form.value.items.reduce((acc, item) => acc + calculateSubtotal(item), 0);
+  const subtotal = form.value.items.reduce((acc, item) => acc + calculateSubtotal(item), 0);
+  return subtotal - promoMarketingDiscountAmount.value;
 });
 
 const formatCurrency = (val: number) => {
@@ -418,6 +433,20 @@ const handleSubmit = async () => {
                     </tr>
                   </tbody>
                   <tfoot>
+                    <tr class="bg-light">
+                      <td colspan="5" class="text-end fw-semibold text-muted align-middle">
+                        Subtotal :
+                      </td>
+                      <td class="text-end fw-semibold align-middle">{{ formatCurrency(totalAmount + promoMarketingDiscountAmount) }}</td>
+                      <td></td>
+                    </tr>
+                    <tr v-if="promoMarketingDiscountPercentage > 0" class="bg-light">
+                      <td colspan="5" class="text-end fw-semibold text-danger align-middle">
+                        Promo Marketing Discount ({{ promoMarketingDiscountPercentage }}%) :
+                      </td>
+                      <td class="text-end fw-semibold text-danger align-middle">-{{ formatCurrency(promoMarketingDiscountAmount) }}</td>
+                      <td></td>
+                    </tr>
                     <tr class="bg-light">
                       <td colspan="5" class="text-end fw-bold fs-5 align-middle">
                         <label class="form-label mb-0 text-dark">Total Pesanan :</label>
