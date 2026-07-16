@@ -376,6 +376,7 @@ const options = {
                           <th>Supplier</th>
                           <th>Toko / Cabang</th>
                           <th>Supplier SKU</th>
+                          <th>Satuan Order</th>
                           <th>Lead Time</th>
                           <th>Harga (Offered)</th>
                           <th>MOQ</th>
@@ -400,6 +401,10 @@ const options = {
                           </td>
                           <td>{{ supplier.store?.name || 'Nasional' }}</td>
                           <td>{{ supplier.supplier_sku || '-' }}</td>
+                          <td>
+                            <span v-if="supplier.purchase_uom" class="badge bg-purple-lt">{{ supplier.purchase_uom.name }}</span>
+                            <span v-else class="text-muted small italic">Ikut Base UOM</span>
+                          </td>
                           <td>{{ supplier.default_lead_time_days }} hari</td>
                           <td>{{ formatCurrency(supplier.offered_price) }}</td>
                           <td>{{ supplier.min_order_qty }}</td>

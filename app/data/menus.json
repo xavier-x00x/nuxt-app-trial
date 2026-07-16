@@ -62,6 +62,11 @@
         "title": "Purchase Order",
         "to": "/purchase-order",
         "permission": "purchase-orders:view"
+      },
+      {
+        "title": "Penerimaan Barang (GR)",
+        "to": "/goods-receipt",
+        "permission": "goods-receipts:view"
       }
     ]
   },

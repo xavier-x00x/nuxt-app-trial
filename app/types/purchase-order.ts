@@ -6,9 +6,12 @@ export interface PurchaseOrderItem {
   product_sku?: string;
   product_name?: string;
   uom_id: string;
-  uom_name?: string;
+  uom_name: string;
+  base_uom_name?: string;
+  conversion_rate?: number;
   qty_ordered: number;
   qty_received?: number;
+  draft_qty?: number;
   unit_price: number;
   subtotal?: number;
   product_supplier_id?: string;
