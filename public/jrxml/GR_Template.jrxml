@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="GoodsReceipt" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="535" leftMargin="30" rightMargin="30" topMargin="20" bottomMargin="20" uuid="79fb60ab-1857-43e4-81dd-99622dcca6cc">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="COMPANY_NAME" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PREPARED_BY" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<field name="no" class="java.lang.String"/>
+	<field name="tanggal" class="java.lang.String"/>
+	<field name="noPO" class="java.lang.String"/>
+	<field name="supplier" class="java.lang.String"/>
+	<field name="alamat" class="java.lang.String"/>
+	<field name="store" class="java.lang.String"/>
+	<field name="store_address" class="java.lang.String"/>
+	<field name="deliveryNoteNo" class="java.lang.String"/>
+	<field name="namaItem" class="java.lang.String"/>
+	<field name="qtyOrdered" class="java.math.BigDecimal"/>
+	<field name="qtyReceived" class="java.math.BigDecimal"/>
+	<field name="qtyRejected" class="java.math.BigDecimal"/>
+	<field name="sat" class="java.lang.String"/>
+	<field name="notes" class="java.lang.String"/>
+	<field name="approvedBy" class="java.lang.String"/>
+	<variable name="ITEM_COUNT" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$F{namaItem}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="215">
+			<textField>
+				<reportElement x="0" y="0" width="267" height="14" uuid="95e7b15b-a92f-45b2-bc0f-2a810af60296"/>
+				<textElement>
+					<font fontName="Helvetica" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{COMPANY_NAME}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="0" y="14" width="267" height="24" uuid="19453b61-5a4a-4dbe-af46-ae12f913e47f"/>
+				<textElement>
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{store_address} != null ? $F{store_address} : ""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="267" y="0" width="268" height="20" uuid="b40f0609-6817-40d1-8c69-b365e780b75b"/>
+				<textElement textAlignment="Right">
+					<font fontName="Helvetica" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["BUKTI PENERIMAAN BARANG (GR)"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="55" width="90" height="12" uuid="35710ee6-f6e8-462d-abe7-9cb8ad43ecf7"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["No. Penerimaan"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="90" y="55" width="10" height="12" uuid="f1eb3370-958a-4790-aee4-6e33f7d14c1a"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="55" width="435" height="12" uuid="70e2a850-82f8-4be9-8c8c-c2ec074502a9"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{no}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="70" width="90" height="12" uuid="b1165e81-9ff1-4e38-8c08-c7641cced8f5"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Tanggal Terima"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="90" y="70" width="10" height="12" uuid="7dc2394d-3633-4e7a-8858-58db818abec9"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="70" width="435" height="12" uuid="1b43ce27-3b84-4f14-a166-4567ad398324"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tanggal}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="85" width="90" height="12" uuid="228f3b50-230a-46c5-b4d2-732664a814ce"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["No. PO"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="90" y="85" width="10" height="12" uuid="17e3d255-107e-497a-a9cf-379d0357585e"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="85" width="435" height="12" uuid="e689a7f1-ec6c-4f37-9080-9eeb70659617"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{noPO}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="100" width="90" height="12" uuid="e689a7f1-ec6c-4f37-9080-9eeb70659618"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["No. Surat Jalan"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="90" y="100" width="10" height="12" uuid="e689a7f1-ec6c-4f37-9080-9eeb70659619"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[":"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="100" y="100" width="435" height="12" uuid="e689a7f1-ec6c-4f37-9080-9eeb70659620"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{deliveryNoteNo} != null && !$F{deliveryNoteNo}.equals("") ? $F{deliveryNoteNo} : "-"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="117" width="535" height="1" uuid="0319281e-0b14-4fe1-bfa1-16dd250ada9e"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="0" y="125" width="267" height="12" uuid="79cca5b3-99ba-4eb3-9385-ff3a58ad7d70"/>
+				<textElement>
+					<font fontName="Helvetica" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["SUPPLIER / PENGIRIM"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="140" width="267" height="12" uuid="87bb0c57-da1f-4592-bb1b-27a87d41e455"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{supplier}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="0" y="155" width="267" height="24" uuid="15a4e76c-d92c-4d90-a832-d4b90d07c163"/>
+				<textElement>
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{alamat} != null ? $F{alamat} : "-"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="270" y="125" width="265" height="12" uuid="9a8cf194-f530-46be-93f6-68ad145563ff"/>
+				<textElement>
+					<font fontName="Helvetica" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["DITERIMA DI"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="270" y="140" width="265" height="12" uuid="1e78a809-1aa5-4fd9-9797-97f03ac541dd"/>
+				<textElement>
+					<font fontName="Helvetica" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{store}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="195" width="535" height="1" uuid="ad49cd0f-4429-401d-8db3-4295e5c7df18"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+		</band>
+	</title>
+	<pageHeader>
+		<band/>
+	</pageHeader>
+	<columnHeader>
+		<band height="18">
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="0" width="25" height="18" backcolor="#CCCCCC" uuid="93d255dc-9b81-4bda-84e4-11836e08b12f"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[No]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="25" y="0" width="230" height="18" backcolor="#CCCCCC" uuid="097c8e43-c5fe-43b0-8efe-81670d3ced8a"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="styled">
+					<font fontName="Helvetica" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Nama Produk]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="255" y="0" width="55" height="18" backcolor="#CCCCCC" uuid="a75caebf-7e91-4350-82d5-960c4c0493c0"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Qty Order]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="310" y="0" width="55" height="18" backcolor="#CCCCCC" uuid="90717acf-6243-4a49-ae1c-43cee3ac2321"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Qty Terima]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="365" y="0" width="55" height="18" backcolor="#CCCCCC" uuid="417bee27-7a3e-4a33-981e-ce271a8eed63"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Qty Tolak]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="420" y="0" width="35" height="18" backcolor="#CCCCCC" uuid="417bee27-7a3e-4a33-981e-ce271a8eed64"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Sat]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="455" y="0" width="80" height="18" backcolor="#CCCCCC" uuid="148b7f6e-2466-47aa-9628-55adfd4392ac"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Keterangan/Alasan]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15">
+			<textField>
+				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="25" height="15" uuid="ea5113c4-2224-4f89-b701-98a4c2de6083"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="25" y="0" width="230" height="15" uuid="1f1d69a0-da26-4e6e-b7af-f36c9db9db46"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{namaItem}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" pattern="#,##0">
+				<reportElement stretchType="RelativeToTallestObject" x="255" y="0" width="55" height="15" uuid="5f6e34b7-71b2-45da-8408-a9e624bf1381"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qtyOrdered}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" pattern="#,##0">
+				<reportElement stretchType="RelativeToTallestObject" x="310" y="0" width="55" height="15" uuid="7de5c5eb-2a74-4f79-9dbd-e744e5d0b63f"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qtyReceived}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight" pattern="#,##0">
+				<reportElement stretchType="RelativeToTallestObject" x="365" y="0" width="55" height="15" uuid="26c39cfd-df1c-44e4-be66-2f1893bc17f5"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qtyRejected}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement stretchType="RelativeToTallestObject" x="420" y="0" width="35" height="15" uuid="ea5113c4-2224-4f89-b701-98a4c2de6084"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sat}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="StretchHeight">
+				<reportElement stretchType="RelativeToTallestObject" x="455" y="0" width="80" height="15" uuid="c5872c3e-87e2-4cc3-a5ce-3571c4481dfd"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{notes} != null ? $F{notes} : ""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="5"/>
+	</columnFooter>
+	<pageFooter>
+		<band/>
+	</pageFooter>
+	<summary>
+		<band height="152">
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<textField textAdjust="StretchHeight">
+				<reportElement x="0" y="10" width="535" height="24" uuid="2d43cc34-bde2-4578-8fb7-0e5b376e00e2"/>
+				<textElement>
+					<font fontName="Helvetica" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Catatan Penerimaan: " + ($F{notes} != null ? $F{notes} : "-")]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="117" width="180" height="1" uuid="f4072739-49f5-4e99-88e2-ceb58a3afbd3"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="0" y="120" width="180" height="12" uuid="d20cd376-2b30-451b-8621-285d137834a2"/>
+				<textElement textAlignment="Center">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Diserahkan Oleh (Supir/Supplier)"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="355" y="117" width="180" height="1" uuid="6811abde-6e92-422d-8bb6-877f74fda34e"/>
+				<graphicElement>
+					<pen lineWidth="0.5"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement x="355" y="120" width="180" height="12" uuid="0d2e33f6-14cc-491c-9928-0a1c4a503ee7"/>
+				<textElement textAlignment="Center">
+					<font fontName="Helvetica" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Diterima Oleh (Staf Gudang)"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="355" y="105" width="180" height="10" uuid="1189a683-8060-42e0-a9d1-1cb936c8469d"/>
+				<textElement textAlignment="Center">
+					<font fontName="Helvetica" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{approvedBy} != null ? $F{approvedBy} : $P{PREPARED_BY}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

@@ -235,12 +235,10 @@ const handleSubmit = async () => {
 <template>
   <div>
     <PageHeader :title="title" icon="i-tabler:shopping-cart">
-      <template #actions>
-        <NuxtLink to="/purchase-order" class="btn btn-outline-secondary rounded-1">
-          <Icon name="i-tabler:arrow-left" class="icon icon-2 me-1" />
-          Batal
-        </NuxtLink>
-      </template>
+      <NuxtLink to="/purchase-order" class="btn btn-outline-secondary rounded-1">
+        <Icon name="i-tabler:arrow-left" class="icon icon-2 me-1" />
+        Batal
+      </NuxtLink>
     </PageHeader>
 
     <PageBody>
