@@ -51,9 +51,9 @@ const pageLoading = ref(true);
 const loadMasterData = async () => {
   pageLoading.value = true;
   const [storeRes, whRes, uomRes] = await Promise.all([
-    useApi<{ data: any[] }>("/stores"),
-    useApi<{ data: any[] }>("/warehouses"),
-    useApi<{ data: any[] }>("/uoms"),
+    useApi<{ data: any[] }>("/inventory/stores"),
+    useApi<{ data: any[] }>("/inventory/warehouses"),
+    useApi<{ data: any[] }>("/catalog/uoms"),
   ]);
 
   if (storeRes.data?.data) stores.value = storeRes.data.data;
@@ -70,7 +70,7 @@ const loadMasterData = async () => {
   }
 
   if (isEdit.value && editId.value) {
-    const poRes = await useApi<{ data: PurchaseOrderDetail }>(`/purchase-orders/${editId.value}`);
+    const poRes = await useApi<{ data: PurchaseOrderDetail }>(`/purchasing/purchase-orders/${editId.value}`);
     if (poRes.data?.data) {
       const d = poRes.data.data;
       poNumber.value = d.po_number || "";
@@ -268,7 +268,7 @@ const handleSubmit = async () => {
                       v-model:display-value="supplierDisplayValue"
                       v-model:selected-data="selectedSupplierObj"
                       value-key="id"
-                      api-url="/suppliers/pagination"
+                      api-url="/purchasing/suppliers/pagination"
                       xname="supplier_id"
                       placeholder="-- Pilih Supplier --"
                       label="Supplier"

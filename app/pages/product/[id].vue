@@ -38,7 +38,7 @@ interface ProductResponse {
 const product = ref<Product | null>(null);
 const loading = ref(true);
 
-const { data: resp, error } = await useApiFetch<ProductResponse>(`/products/${id.value}`);
+const { data: resp, error } = await useApiFetch<ProductResponse>(`/catalog/products/${id.value}`);
 if (error.value || !resp.value) {
   setFlash("Data product tidak ditemukan", "error");
   navigateTo("/product");

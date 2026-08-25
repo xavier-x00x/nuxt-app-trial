@@ -306,9 +306,9 @@ const onSubmit = async () => {
   };
 
   if (isEdit.value) {
-    await submitForm(`/master-data/${props.id}`, { method: "PUT", body: dataPayload });
+    await submitForm(`/system/proposals/${props.id}`, { method: "PUT", body: dataPayload });
   } else {
-    await submitForm("/master-data", { method: "POST", body: dataPayload });
+    await submitForm("/system/proposals", { method: "POST", body: dataPayload });
   }
   if (success.value) navigateTo(props.basePath);
 };
@@ -352,7 +352,7 @@ const onSubmit = async () => {
                   v-model:display-value="item.entity_text"
                   v-model:selected-data="item._selected_obj"
                   value-key="id"
-                  api-url="/accounts/pagination"
+                  api-url="/finance/accounts/pagination"
                   xname="entity_id"
                   placeholder="Ketik untuk mencari..."
                   :clearable="true"
@@ -375,7 +375,6 @@ const onSubmit = async () => {
               <!-- CREATE & UPDATE Dynamic Fields -->
               <template v-if="proposalType === 'CREATE' || (proposalType === 'UPDATE' && item.entity_id)">
                 <div class="row g-3">
-
                   <div class="col-md-6">
                     <ui-input2 v-model="item.account_code" label="Account Code *" type="text" placeholder="Input Account Code" />
                   </div>
@@ -387,10 +386,10 @@ const onSubmit = async () => {
                     <select v-model="item.account_type" class="form-select rounded-1">
                       <option value="" disabled>Select Account Type</option>
                       <option value="ASSET">Asset</option>
-<option value="LIABILITY">Liability</option>
-<option value="EQUITY">Equity</option>
-<option value="REVENUE">Revenue</option>
-<option value="EXPENSE">Expense</option>
+                      <option value="LIABILITY">Liability</option>
+                      <option value="EQUITY">Equity</option>
+                      <option value="REVENUE">Revenue</option>
+                      <option value="EXPENSE">Expense</option>
                     </select>
                   </div>
                   <div class="col-md-6">
@@ -398,7 +397,7 @@ const onSubmit = async () => {
                     <select v-model="item.normal_balance" class="form-select rounded-1">
                       <option value="" disabled>Select Normal Balance</option>
                       <option value="DEBIT">Debit</option>
-<option value="CREDIT">Credit</option>
+                      <option value="CREDIT">Credit</option>
                     </select>
                   </div>
                   <div class="col-md-12">
@@ -408,7 +407,7 @@ const onSubmit = async () => {
                       v-model:display-value="item.parent_id_text"
                       v-model:selected-data="item.parent_id_obj"
                       value-key="id"
-                      api-url="/accounts/pagination"
+                      api-url="/finance/accounts/pagination"
                       xname="parent_id"
                       placeholder="Select Parent Account"
                       :clearable="true"

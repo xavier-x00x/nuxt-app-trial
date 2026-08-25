@@ -58,7 +58,7 @@ const getStatusBadgeClass = (status: string) => {
 const options = {
   columns,
   ajax: {
-    url: `/goods-receipts/pagination`,
+    url: `/purchasing/goods-receipts/pagination`,
   },
   pathKey: "goods_receipts",
   showActions: true,
@@ -70,7 +70,7 @@ const { openConfirmDelete } = useConfirmDelete();
 const { success, submitForm } = useForm2();
 
 const cancelItem = async (id: string) => {
-  await submitForm(`/goods-receipts/${id}/cancel`, {
+  await submitForm(`/purchasing/goods-receipts/${id}/cancel`, {
     method: "POST",
     successMessage: "Draft berhasil dihapus",
   });
@@ -81,10 +81,16 @@ const cancelItem = async (id: string) => {
 <template>
   <div>
     <PageHeader :title="title" icon="i-tabler:building-warehouse">
-      <NuxtLink to="/goods-receipt/form" class="btn btn-primary rounded-1">
-        <Icon name="i-tabler:plus" class="icon icon-2 me-1" />
-        Buat Penerimaan
-      </NuxtLink>
+      <div class="d-flex gap-2">
+        <NuxtLink to="/goods-receipt/create-direct" class="btn btn-outline-primary rounded-1">
+          <Icon name="i-tabler:shopping-cart-plus" class="icon icon-2 me-1" />
+          Pembelian Langsung
+        </NuxtLink>
+        <NuxtLink to="/goods-receipt/form" class="btn btn-primary rounded-1">
+          <Icon name="i-tabler:plus" class="icon icon-2 me-1" />
+          Buat Penerimaan
+        </NuxtLink>
+      </div>
     </PageHeader>
     <PageBody>
       <DataTable3 ref="tableRef" :options="options">
@@ -110,7 +116,7 @@ const cancelItem = async (id: string) => {
             </NuxtLink>
             <NuxtLink
               v-if="row.status === 'DRAFT'"
-              :to="`/goods-receipt/form?id=${row.id}`"
+              :to="row.purchase_order_id && row.purchase_order_id !== '00000000-0000-0000-0000-000000000000' ? `/goods-receipt/form?id=${row.id}` : `/goods-receipt/create-direct?id=${row.id}`"
               class="btn btn-sm btn-outline-info py-1 px-2 rounded-1 text-nowrap"
             >
               <Icon name="i-tabler:pencil" class="icon icon-2" />

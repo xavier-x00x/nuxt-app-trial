@@ -34,7 +34,7 @@ interface ProposalResponse {
   message: string;
 }
 
-const { data: resp, error } = await useApiFetch<ProposalResponse>(`/master-data/${id.value}`);
+const { data: resp, error } = await useApiFetch<ProposalResponse>(`/system/proposals/${id.value}`);
 if (error.value || !resp.value) {
   setFlash("Proposal tidak ditemukan", "error");
   navigateTo("/");
@@ -184,6 +184,7 @@ const entityFields: Record<string, FieldDef[]> = {
   ],
   PRODUCT_SUPPLIER: [
     { key: "supplier_sku", label: "Supplier SKU" },
+    { key: "purchase_uom_id_text", label: "Satuan Order" },
     { key: "default_lead_time_days", label: "Lead Time (days)" },
     { key: "offered_price", label: "Offered Price" },
     { key: "min_order_qty", label: "Min Order Qty" },
@@ -371,7 +372,7 @@ const submitReview = async () => {
   };
   if (reviewAction.value === "REJECTED") body.review_notes = reviewNotes.value;
 
-  const response = await reviewForm(`/master-data/${id.value}/review`, {
+  const response = await reviewForm(`/system/proposals/${id.value}/review`, {
     method: "POST",
     body,
   });
@@ -395,7 +396,7 @@ const execLoading = ref(false);
 
 const executeProposal = async () => {
   execLoading.value = true;
-  await execForm(`/master-data/${id.value}/execute`, {
+  await execForm(`/system/proposals/${id.value}/execute`, {
     method: "POST",
     body: {},
   });
@@ -415,10 +416,12 @@ const executeProposal = async () => {
       <div class="row justify-content-center">
         <div class="col-xl-8 col-md-8 col-sm-12">
           <!-- Header Info Card -->
-          <div :class="['card rounded-1 mb-3 shadow-sm border-0 border-start border-4', 
-            proposal.status === 'PENDING' ? 'border-warning' : 
-            proposal.status === 'APPROVED' ? 'border-success' : 
-            proposal.status === 'REJECTED' ? 'border-danger' : 'border-secondary']">
+          <div
+            :class="['card rounded-1 mb-3 shadow-sm border-0 border-start border-4', 
+                     proposal.status === 'PENDING' ? 'border-warning' : 
+                     proposal.status === 'APPROVED' ? 'border-success' : 
+                     proposal.status === 'REJECTED' ? 'border-danger' : 'border-secondary']"
+          >
             <div class="card-body p-4">
               <div class="d-flex align-items-center justify-content-between mb-4">
                 <div>

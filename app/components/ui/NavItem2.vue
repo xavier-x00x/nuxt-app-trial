@@ -56,9 +56,9 @@ onMounted(() => {
         class="nav-link dropdown-toggle"
         :class="{ show: isOpen }"
         href="#"
-        @click.prevent="isOpen = !isOpen"
         role="button"
         :aria-expanded="isOpen ? 'true' : 'false'"
+        @click.prevent="isOpen = !isOpen"
       >
         <span v-if="icon" class="nav-link-icon d-md-none d-lg-inline-block">
           <Icon :name="icon" class="icon" />

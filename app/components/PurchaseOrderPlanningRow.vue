@@ -12,6 +12,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
+  <!-- eslint-disable vue/no-mutating-props -->
   <tr>
     <td class="text-center">
       <input

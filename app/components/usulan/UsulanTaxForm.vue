@@ -260,9 +260,9 @@ const onSubmit = async () => {
   };
 
   if (isEdit.value) {
-    await submitForm(`/master-data/${props.id}`, { method: "PUT", body: dataPayload });
+    await submitForm(`/system/proposals/${props.id}`, { method: "PUT", body: dataPayload });
   } else {
-    await submitForm("/master-data", { method: "POST", body: dataPayload });
+    await submitForm("/system/proposals", { method: "POST", body: dataPayload });
   }
   if (success.value) navigateTo(props.basePath);
 };
@@ -306,7 +306,7 @@ const onSubmit = async () => {
                   v-model:display-value="item.entity_text"
                   v-model:selected-data="item._selected_obj"
                   value-key="id"
-                  api-url="/taxes/pagination"
+                  api-url="/catalog/taxes/pagination"
                   xname="entity_id"
                   placeholder="Ketik untuk mencari..."
                   :clearable="true"
@@ -329,7 +329,6 @@ const onSubmit = async () => {
               <!-- CREATE & UPDATE Dynamic Fields -->
               <template v-if="proposalType === 'CREATE' || (proposalType === 'UPDATE' && item.entity_id)">
                 <div class="row g-3">
-
                   <div class="col-md-6">
                     <ui-input2 v-model="item.name" label="Name *" type="text" placeholder="Input Name" />
                   </div>
@@ -343,7 +342,7 @@ const onSubmit = async () => {
                       v-model:display-value="item.tax_account_id_text"
                       v-model:selected-data="item.tax_account_id_obj"
                       value-key="id"
-                      api-url="/accounts/pagination"
+                      api-url="/finance/accounts/pagination"
                       xname="tax_account_id"
                       placeholder="Select Tax Account"
                       :clearable="true"

@@ -54,7 +54,7 @@ const tableRef = ref(); // table ref catatan: ref dikosongkan untuk element
 const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: number) => {
-  await submitForm(`/stores/${id}`, {
+  await submitForm(`/inventory/stores/${id}`, {
     method: "DELETE",
   });
   if (success.value) tableRef.value?.removeRow(id);
@@ -63,7 +63,7 @@ const deleteItem = async (id: number) => {
 const options = {
   columns,
   ajax: {
-    url: `/stores/pagination`,
+    url: `/inventory/stores/pagination`,
   },
   pathKey: "stores",
   showActions: true,

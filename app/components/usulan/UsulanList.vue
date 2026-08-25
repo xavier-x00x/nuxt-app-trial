@@ -3,9 +3,9 @@ import type { Column } from "~/components/DataTable3.vue";
 
 const props = withDefaults(defineProps<{
   entityType?: string;
-  title: string;
-  icon: string;
-  basePath: string;
+  title?: string;
+  icon?: string;
+  basePath?: string;
 }>(), {
   entityType: "",
   title: "Proposals",
@@ -28,12 +28,16 @@ interface DataList {
 
 const entityColor: Record<string, string> = {
   PRODUCT: "bg-blue text-white",
+  CATEGORY: "bg-yellow text-dark",
+  UOM: "bg-cyan text-white",
   PRODUCT_PRICE: "bg-indigo text-white",
   PRODUCT_UOM_CONVERSION: "bg-purple text-white",
   SUPPLIER: "bg-teal text-white",
   PRODUCT_SUPPLIER: "bg-cyan text-white",
   CHART_OF_ACCOUNT: "bg-orange text-white",
   TAX: "bg-pink text-white",
+  BRAND: "bg-azure text-white",
+  PRODUCT_COMPOSITION: "bg-lime text-dark",
 };
 
 const actionColor: Record<string, string> = {
@@ -67,12 +71,16 @@ defineSlots<{
 
 const entityEditBase: Record<string, string> = {
   PRODUCT: "/usulan/product/edit",
+  CATEGORY: "/usulan/category/edit",
+  UOM: "/usulan/uom/edit",
   SUPPLIER: "/usulan/supplier/edit",
   CHART_OF_ACCOUNT: "/usulan/coa/edit",
   TAX: "/usulan/tax/edit",
   PRODUCT_PRICE: "/usulan/product-price/edit",
   PRODUCT_UOM_CONVERSION: "/usulan/product-uom/edit",
   PRODUCT_SUPPLIER: "/usulan/product-supplier/edit",
+  BRAND: "/usulan/brand/edit",
+  PRODUCT_COMPOSITION: "/usulan/product-composition/edit",
 };
 
 const editUrl = (row: DataList) => {
@@ -92,7 +100,7 @@ const filterParams = computed(() => {
 const options = {
   columns,
   ajax: {
-    url: `/master-data/pagination`,
+    url: `/system/proposals/pagination`,
   },
   pathKey: `usulan-list-${props.entityType || 'all'}`,
   showActions: true,
@@ -122,7 +130,7 @@ const submitDelete = async () => {
   if (!proposalToDelete.value) return;
   deleteLoading.value = true;
   try {
-    await submitForm(`/master-data/${proposalToDelete.value.id}`, { method: "DELETE" });
+    await submitForm(`/system/proposals/${proposalToDelete.value.id}`, { method: "DELETE" });
     if (deleteSuccess.value) {
       deleteModal.value?.hide();
       if (dataTableRef.value) {
@@ -182,6 +190,9 @@ const submitDelete = async () => {
             {{ value || '-' }}
           </span>
         </template>
+        <template #cell-proposed_by_name="{ row, value }">
+          <span>{{ value || row.proposed_by_id || '-' }}</span>
+        </template>
         <template #cell-created_at="{ value }">
           {{ formatDate(value as string) }}
         </template>
@@ -218,7 +229,7 @@ const submitDelete = async () => {
     </PageBody>
 
     <!-- Delete Confirmation Modal -->
-    <div class="modal modal-blur fade" id="delete-modal" tabindex="-1" role="dialog" aria-hidden="true" ref="deleteModalEl">
+    <div id="delete-modal" ref="deleteModalEl" class="modal modal-blur fade" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content shadow-sm">
           <div class="modal-header bg-danger-lt border-0">
@@ -234,7 +245,7 @@ const submitDelete = async () => {
             </div>
             <div class="fw-bold mb-2">Konfirmasi Hapus</div>
             <div class="text-muted small">
-              Apakah Anda yakin ingin menghapus usulan dengan referensi <strong v-if="proposalToDelete">{{ proposalToDelete.reference_number }}</strong>?<br/>
+              Apakah Anda yakin ingin menghapus usulan dengan referensi <strong v-if="proposalToDelete">{{ proposalToDelete.reference_number }}</strong>?<br />
               Tindakan ini tidak dapat dibatalkan.
             </div>
           </div>

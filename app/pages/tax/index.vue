@@ -41,7 +41,7 @@ const tableRef = ref();
 const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: string) => {
-  await submitForm(`/taxes/${id}`, {
+  await submitForm(`/catalog/taxes/${id}`, {
     method: "DELETE",
   });
   if (success.value) tableRef.value?.removeRow(id);
@@ -50,7 +50,7 @@ const deleteItem = async (id: string) => {
 const options = {
   columns,
   ajax: {
-    url: `/taxes/pagination`,
+    url: `/catalog/taxes/pagination`,
   },
   pathKey: "taxes",
   showActions: true,

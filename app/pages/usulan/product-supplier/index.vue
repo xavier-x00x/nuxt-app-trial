@@ -3,5 +3,5 @@ const title = "Usulan Kontrak Supplier";
 useHead({ title });
 </script>
 <template>
-  <UsulanList entityType="PRODUCT_SUPPLIER" :title="title" icon="i-tabler:affiliate" basePath="/usulan/product-supplier" />
+  <UsulanList entity-type="PRODUCT_SUPPLIER" :title="title" icon="i-tabler:affiliate" base-path="/usulan/product-supplier" />
 </template>

@@ -24,7 +24,7 @@ const dataForm = ref<Tax>({
 });
 
 if (id.value !== "new") {
-  const { data: resp, error } = await useApiFetch<TaxResponse>(`/taxes/${id.value}`);
+  const { data: resp, error } = await useApiFetch<TaxResponse>(`/catalog/taxes/${id.value}`);
   if (error.value || !resp.value) {
     setFlash("Data pajak tidak ditemukan", "error");
     navigateTo("/tax");
@@ -40,7 +40,7 @@ if (id.value !== "new") {
 const form = ref<HTMLFormElement>();
 const { loading, success, errors, submitForm } = useForm2();
 
-const { url: submitUrl, method: submitMethod } = useResource("taxes", id);
+const { url: submitUrl, method: submitMethod } = useResource("catalog/taxes", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {
@@ -55,7 +55,7 @@ const onSubmit = async () => {
 };
 
 // get coa list
-const { data: coaResp } = await useApiFetch<any>(`/accounts`);
+const { data: coaResp } = await useApiFetch<any>(`/finance/accounts`);
 const coaList = computed(() => coaResp.value?.data || []);
 </script>
 

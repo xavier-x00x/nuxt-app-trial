@@ -18,8 +18,8 @@ interface LoginResponse {
   success: boolean;
   message: string;
   data: {
-    access_token: string,
-    user: User
+    access_token: string;
+    user: User;
   }
 }
 
@@ -54,6 +54,7 @@ export function getAccessTokenCookie(nuxtApp?: any) {
   return ctx.runWithContext(() => {
     return useCookie<string | null>(ACCESS_TOKEN_COOKIE, {
       path: "/",
+      maxAge: ACCESS_TOKEN_MAX_AGE,
       httpOnly: false,
       secure: import.meta.env.PROD,
       sameSite: "lax",
@@ -66,7 +67,10 @@ export function getUserCookie(nuxtApp?: any) {
   return ctx.runWithContext(() => {
     return useCookie<any>(USER_COOKIE, {
       path: "/",
+      maxAge: USER_COOKIE_MAX_AGE,
       httpOnly: false,
+      secure: import.meta.env.PROD,
+      sameSite: "lax",
     });
   });
 }
@@ -226,14 +230,11 @@ export const useAuthStore = defineStore("auth", {
 
     persistUser(ctx?: any) {
       if (this.user) {
-        // Buang permissions dari user sebelum simpan ke cookie
-        const { permissions, ...userWithoutPermissions } = this.user;
-        this.setCookie(USER_COOKIE, userWithoutPermissions, { maxAge: USER_COOKIE_MAX_AGE }, ctx);
+        this.setCookie(USER_COOKIE, this.user, { maxAge: USER_COOKIE_MAX_AGE }, ctx);
       }
     },
 
     persistAccessToken(token: string, ctx?: any) {
-      console.log('[authStore] TOKEN:', token);
       this.accessToken = token;
       this.setCookie(ACCESS_TOKEN_COOKIE, token, { maxAge: ACCESS_TOKEN_MAX_AGE }, ctx);
       
@@ -248,7 +249,6 @@ export const useAuthStore = defineStore("auth", {
       this.menus = [];
       this.clearCookie(USER_COOKIE, ctx);
       this.clearCookie(ACCESS_TOKEN_COOKIE, ctx);
-      // this.clearCookie("menu", ctx);
     },
 
     // ── Auth actions ───────────────────────────────────────────────
@@ -310,43 +310,29 @@ export const useAuthStore = defineStore("auth", {
     async refreshAccessToken(ctx?: any): Promise<boolean> {
       const nuxtApp = ctx || useNuxtApp();
       try {
-        const headers: Record<string, string> = {};
-        const options: Record<string, any> = {
+        const fetchOptions: Record<string, any> = {
           method: "POST",
         };
 
-        // SSR: ambil dari request headers
+        // SSR: forward the refresh_token HTTPOnly cookie from the incoming request
         if (import.meta.server) {
           const reqHeaders = useRequestHeaders(['cookie']);
           if (reqHeaders.cookie) {
-            const refreshToken = reqHeaders.cookie
-              .split(';')
-              .map(c => c.trim())
-              .find(c => c.startsWith('refresh_token='));
-
-            if (refreshToken) {
-              headers.cookie = refreshToken;
+            fetchOptions.headers = { cookie: reqHeaders.cookie };
+          } else {
+            if (import.meta.dev) {
+              console.log('[authStore] refreshAccessToken - no cookies in SSR request');
             }
+            return false;
           }
-          options.headers = headers;
+        } else {
+          // Client: browser sends HTTPOnly cookies automatically with credentials: include
+          fetchOptions.credentials = "include";
         }
-        // Client: ambil dari document.cookie
-        else if (typeof document !== 'undefined') {
-          const cookies = document.cookie
-            .split(';')
-            .map(c => c.trim())
-            .filter(c => c.startsWith('refresh_token='));
-          if (cookies.length) {
-            headers.cookie = cookies.join('; ');
-          }
-          console.log('headers.cookie:', document.cookie);
-          options.credentials = "include";
-        }
-
-        
 
         const res = await $fetch<RefreshResponse>(
-          `${getApiBase()}/auth/refresh`, options
+          `${getApiBase()}/auth/refresh`,
+          fetchOptions
         );
 
         if (import.meta.dev) {
@@ -391,23 +377,25 @@ export const useAuthStore = defineStore("auth", {
         this.persistUser(nuxtApp);
         this.updateMenus(nuxtApp);
       } catch (error) {
-        console.warn("[authStore] fetchUser failed, trying token refresh:", error);
+        console.warn("[authStore] fetchUser failed:", error);
 
-        const refreshed = await this.refreshAccessToken(nuxtApp);
-        if (!refreshed) {
-          this.clearAuth(nuxtApp);
-          return;
-        }
-
-        try {
-          const data = await $fetch<{ data: User }>(`${getApiBase()}/auth/me`, {
-            headers: { Authorization: `Bearer ${this.accessToken}` },
-          });
-          this.user = data.data;
-          this.persistUser(nuxtApp);
-          this.updateMenus(nuxtApp);
-        } catch {
-          this.clearAuth(nuxtApp);
+        const status = (error as any)?.status || (error as any)?.statusCode;
+        if (status === 401) {
+          const refreshed = await this.refreshAccessToken(nuxtApp);
+          if (refreshed) {
+            try {
+              const data = await $fetch<{ data: User }>(`${getApiBase()}/auth/me`, {
+                headers: { Authorization: `Bearer ${this.accessToken}` },
+              });
+              this.user = data.data;
+              this.persistUser(nuxtApp);
+              this.updateMenus(nuxtApp);
+            } catch {
+              this.clearAuth(nuxtApp);
+            }
+          } else {
+            this.clearAuth(nuxtApp);
+          }
         }
       }
     },
@@ -417,96 +405,23 @@ export const useAuthStore = defineStore("auth", {
       this.clearAuth(nuxtApp);
 
       try {
-        const headers: Record<string, string> = {};
-
-        // SSR: ambil dari request headers
-        if (import.meta.server) {
-          const reqHeaders = useRequestHeaders(['cookie']);
-          if (reqHeaders.cookie) {
-            const cookies = reqHeaders.cookie
-              .split(';')
-              .map(c => c.trim())
-              .filter(c => c.startsWith('refresh_token=') || c.startsWith('access_token='));
-            if (cookies.length) {
-              headers.cookie = cookies.join('; ');
-            }
-          }
-        } 
-        // Client: ambil dari document.cookie
-        else if (typeof document !== 'undefined') {
-          const cookies = document.cookie
-            .split(';')
-            .map(c => c.trim())
-            .filter(c => c.startsWith('refresh_token=') || c.startsWith('access_token='));
-          if (cookies.length) {
-            headers.cookie = cookies.join('; ');
-          }
-        }
-
+        // Call backend logout to clear HTTPOnly refresh_token cookie
         await $fetch(`${getApiBase()}/auth/logout`, {
           method: "POST",
-          headers,
+          credentials: "include",
         });
       } catch (e) {
-        console.error("[authStore] Logout error:", e);
+        console.error("Logout error:", e);
       }
     },
 
     async checkAccess(path: string): Promise<boolean> {
-      // const nuxtApp = useNuxtApp();
-
-      if (!this.isAuthenticated) return false;
-
-      console.log(this.user);
-      
-      if (this.user?.role === "administrator" || this.user?.role === "programmer"){
+      if (!this.user) return false;
+      const role = (this.user.role || "").toLowerCase();
+      if (role === "administrator" || role === "programmer" || role === "admin") {
         return true;
       }
-
-      return this.userPermissions.includes(path);
-
-      // if (!this.accessToken) {
-      //   const refreshed = await this.refreshAccessToken(nuxtApp);
-      //   if (!refreshed) return false;
-      // }
-
-      // const doCheck = async (): Promise<boolean> => {
-      //   const headers: Record<string, string> = {
-      //     Authorization: `Bearer ${this.accessToken}`
-      //   };
-      //   if (import.meta.server) {
-      //     const reqHeaders = useRequestHeaders(['cookie']);
-      //     if (reqHeaders.cookie) {
-      //       headers.cookie = reqHeaders.cookie;
-      //     }
-      //   }
-
-      //   const res = await $fetch<{ data: boolean }>(
-      //     `${getApiBase()}/roles/authorization`,
-      //     {
-      //       method: "POST",
-      //       timeout: 5000,
-      //       headers,
-      //       body: { path },
-      //     }
-      //   );
-      //   return res.data;
-      // };
-
-      // try {
-      //   return await doCheck();
-      // } catch (error) {
-      //   console.warn("[authStore] checkAccess failed, retrying:", error);
-
-      //   const refreshed = await this.refreshAccessToken(nuxtApp);
-      //   if (!refreshed) return false;
-
-      //   try {
-      //     return await doCheck();
-      //   } catch {
-      //     return false;
-      //   }
-      // }
+      return this.userPermissions.length === 0 || this.userPermissions.includes(path);
     },
   },
 });

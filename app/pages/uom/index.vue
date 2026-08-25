@@ -39,7 +39,7 @@ const tableRef = ref();
 const options = {
   columns,
   ajax: {
-    url: `/uoms/pagination`,
+    url: `/catalog/uoms/pagination`,
   },
   pathKey: "uoms",
   showActions: true,

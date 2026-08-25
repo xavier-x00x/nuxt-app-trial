@@ -17,9 +17,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
         console.log('[auth.global.ts SSR] No token in store, loading from cookies');
       }
       auth.loadFromCookies();
+    }
+
+    // If we are not fully authenticated (e.g. missing token or missing user),
+    // we call fetchUser() which will automatically attempt to refresh the token if needed.
+    if (!auth.isAuthenticated) {
       await auth.fetchUser();
-    } else if (import.meta.dev) {
-      console.log('[auth.global.ts SSR] Token already in store, skipping load');
     }
 
     // SSR: check authentication after loading tokens
@@ -28,7 +31,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
       if (PUBLIC_AUTH_PATHS.includes(to.path as (typeof PUBLIC_AUTH_PATHS)[number])) {
         return;
       }
-      // Redirect to login if not authenticated
       if (import.meta.dev) {
         console.log('[auth.global.ts SSR] Not authenticated, redirecting to login');
       }
@@ -57,22 +59,16 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // the page with user data. Re-running auth checks during hydration
   // is redundant and causes jitter (async gaps while re-fetching).
   const nuxtApp = useNuxtApp();
-  console.log('isHydrating : ', nuxtApp.isHydrating);
   if (nuxtApp.isHydrating) {
     // Still load from cookies so client-side store is populated
     if (!auth.accessToken) {
-      if (import.meta.dev) {
-        console.log('[auth.global.ts hydration] No token, loading from cookies');
-      }
       auth.loadFromCookies();
     }
-    
     return;
   }
 
   // ── Client: public auth pages ──────────────────────────────────
   if (PUBLIC_AUTH_PATHS.includes(to.path as (typeof PUBLIC_AUTH_PATHS)[number])) {
-    console.log('auth : ', auth.isAuthenticated);
     if (auth.isAuthenticated) {
       await auth.logout();
     }
@@ -80,21 +76,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   // ── Client: ensure authenticated ───────────────────────────────
-  // if (!auth.accessToken) {
-  //   if (import.meta.dev) {
-  //     console.log('[auth.global.ts client] No token, loading from cookies');
-  //   }
-  //   auth.loadFromCookies();
-  // }
-
-  if (!import.meta.server) {
-    if (import.meta.dev) {
-      console.log('[auth.global.ts client] Loading tokens from cookies on client');
-    }
-    auth.loadFromCookies();
-  }
-
-  console.log('auth : ', auth.isAuthenticated);
+  auth.loadFromCookies();
 
   // Only fetch user if not already authenticated
   if (!auth.isAuthenticated) {

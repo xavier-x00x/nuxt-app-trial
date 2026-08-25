@@ -32,7 +32,7 @@ const dataForm = ref<Warehouse>({
 });
 
 if (id.value !== "new") {
-  const { data: resp, error } = await useApiFetch<WarehouseResponse>(`/warehouses/${id.value}`);
+  const { data: resp, error } = await useApiFetch<WarehouseResponse>(`/inventory/warehouses/${id.value}`);
   if (error.value || !resp.value) {
     setFlash("Data warehouse tidak ditemukan", "error");
     navigateTo("/warehouse");
@@ -44,7 +44,7 @@ if (id.value !== "new") {
 const form = ref<HTMLFormElement>();
 const { loading, success, errors, formatError, submitForm } = useForm2();
 
-const { url: submitUrl, method: submitMethod } = useResource("warehouses", id);
+const { url: submitUrl, method: submitMethod } = useResource("inventory/warehouses", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {

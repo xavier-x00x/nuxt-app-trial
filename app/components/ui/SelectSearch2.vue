@@ -37,8 +37,8 @@
           v-if="clearable && modelValue"
           type="button"
           class="btn-clear text-muted border-0 bg-transparent p-0 me-1 mt-1"
-          @click.stop="clearSelection"
           title="Clear selection"
+          @click.stop="clearSelection"
         >
           <Icon name="i-tabler:x" size="1.05rem" />
         </button>

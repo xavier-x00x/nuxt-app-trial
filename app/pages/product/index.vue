@@ -15,6 +15,9 @@ interface DataList {
   variant: string | null;
   category_id: string;
   category_name: string | null;
+  brand_id?: string | null;
+  brand_name?: string | null;
+  brand?: { name: string } | null;
   base_uom_id: string;
   uom_name: string | null;
   is_stockable: boolean;
@@ -77,7 +80,7 @@ const tableRef = ref();
 const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: string) => {
-  await submitForm(`/products/${id}`, {
+  await submitForm(`/catalog/products/${id}`, {
     method: "DELETE",
   });
   if (success.value) tableRef.value?.removeRow(id);
@@ -86,6 +89,7 @@ const deleteItem = async (id: string) => {
 const selectedProduct = ref<DataList | null>(null);
 const productUoms = ref<any[]>([]);
 const productSuppliers = ref<any[]>([]);
+const productCompositions = ref<any[]>([]);
 const sellPriceForStore = ref<number | null>(null);
 const loading = ref(false);
 const detailModalEl = ref<HTMLElement | null>(null);
@@ -95,6 +99,7 @@ const showDetail = async (row: DataList) => {
   selectedProduct.value = row;
   productUoms.value = [];
   productSuppliers.value = [];
+  productCompositions.value = [];
   loading.value = true;
 
   if (import.meta.client) {
@@ -106,11 +111,12 @@ const showDetail = async (row: DataList) => {
 
   detailModal.value?.show();
 
-  const [resProduct, resUoms, resSuppliers, resPrices] = await Promise.all([
-    useApi<{ data: DataList }>(`/products/${row.id}`),
-    useApi<{ data: any[] }>(`/product-uoms/product/${row.id}`),
-    useApi<{ data: any[] }>(`/products/${row.id}/suppliers`),
-    useApi<{ data: any[] }>(`/product-prices/product/${row.id}`)
+  const [resProduct, resUoms, resSuppliers, resPrices, resCompositions] = await Promise.all([
+    useApi<{ data: DataList }>(`/catalog/products/${row.id}`),
+    useApi<{ data: any[] }>(`/catalog/product-uoms/product/${row.id}`),
+    useApi<{ data: any[] }>(`/purchasing/products/${row.id}/suppliers`),
+    useApi<{ data: any[] }>(`/catalog/product-prices/product/${row.id}`),
+    useApi<{ data: any[] }>(`/catalog/product-compositions/parent/${row.id}`)
   ]);
 
   if (!resProduct.error && resProduct.data?.data) {
@@ -122,6 +128,9 @@ const showDetail = async (row: DataList) => {
   }
   if (!resSuppliers.error && resSuppliers.data?.data) {
     productSuppliers.value = resSuppliers.data.data;
+  }
+  if (!resCompositions.error && resCompositions.data?.data) {
+    productCompositions.value = resCompositions.data.data;
   }
   
   sellPriceForStore.value = null;
@@ -150,7 +159,7 @@ const formatCurrency = (value: number | string) => {
 const options = {
   columns,
   ajax: {
-    url: `/products/pagination`,
+    url: `/catalog/products/pagination`,
   },
   pathKey: "products",
   showActions: true,
@@ -258,6 +267,10 @@ const options = {
                         <tr>
                           <td class="fw-bold text-muted">Category</td>
                           <td>{{ selectedProduct.category_name || '-' }}</td>
+                        </tr>
+                        <tr>
+                          <td class="fw-bold text-muted">Brand</td>
+                          <td>{{ selectedProduct.brand?.name || selectedProduct.brand_name || '-' }}</td>
                         </tr>
                         <tr>
                           <td class="fw-bold text-muted">Base UOM</td>
@@ -413,6 +426,38 @@ const options = {
                             <span v-if="supplier.is_consignment" class="badge bg-purple-lt mb-1 d-block">Konsinyasi</span>
                             <span v-if="supplier.is_returnable" class="badge bg-teal-lt d-block">Bisa Retur</span>
                           </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom Section: Compositions / BOM -->
+              <div v-if="productCompositions.length > 0" class="row mt-4">
+                <div class="col-12">
+                  <h5 class="fw-bold text-muted border-bottom pb-2 mb-3">Komposisi Produk / Resep (BOM)</h5>
+                  <div class="table-responsive border rounded-1">
+                    <table class="table table-vcenter card-table mb-0 table-sm">
+                      <thead>
+                        <tr>
+                          <th>Komponen Bahan</th>
+                          <th>Kuantitas</th>
+                          <th>Satuan (UOM)</th>
+                          <th>Toleransi Susut (Scrap %)</th>
+                          <th>Stasiun Kerja / Work Center</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="comp in productCompositions" :key="comp.id">
+                          <td class="fw-bold">
+                            <span v-if="comp.component_product?.sku" class="badge bg-indigo-lt me-1">{{ comp.component_product.sku }}</span>
+                            {{ comp.component_product?.name || '-' }}
+                          </td>
+                          <td><span class="badge bg-teal-lt">{{ comp.quantity }}</span></td>
+                          <td><span class="badge bg-purple-lt">{{ comp.uom?.name || comp.uom_id }}</span></td>
+                          <td>{{ comp.scrap_percentage }}%</td>
+                          <td>{{ comp.work_center_id || '-' }}</td>
                         </tr>
                       </tbody>
                     </table>

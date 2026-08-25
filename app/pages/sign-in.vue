@@ -12,17 +12,15 @@ useHead({
 const reactNav = useState("react-nav", () => 0);
 
 const dataForm = reactive({
-  email: "noto@dev.com",
+  identity: "noto@dev.com",
   password: "12345678",
   remember: false,
 });
 
-// auth.logout();
-
 const onSubmit = async () => {
-  await auth.login(dataForm.email, dataForm.password, dataForm.remember);
+  await auth.login(dataForm.identity, dataForm.password, dataForm.remember);
   if (auth.isAuthenticated) {
-    reactNav.value++; // Trigger navbar update
+    reactNav.value++;
     navigateTo("/");
   }
 };
@@ -36,6 +34,7 @@ onMounted(() => {
   firstInput?.focus();
 });
 </script>
+
 <template>
   <div class="container-tight">
     <div class="text-center mb-2">
@@ -46,7 +45,7 @@ onMounted(() => {
             alt="Tabler"
             style="height: 35px"
             class="bg-green-lt border border-green-lt rounded-3 me-2"
-          />
+          >
           <strong>Admin Panel</strong>
         </h2>
       </a>
@@ -56,56 +55,26 @@ onMounted(() => {
         <h2 class="h2 text-center mb-4">Login to your account</h2>
         <form autocomplete="off" novalidate @submit.prevent="onSubmit">
           <div class="mb-3">
-            <label class="form-label">Email</label>
+            <label class="form-label">Email / Username / No. HP</label>
             <input
-              v-model="dataForm.email"
-              type="email"
+              v-model="dataForm.identity"
+              type="text"
               class="form-control"
-              placeholder="Email"
-            />
+              placeholder="Masukkan Email, Username, atau No. HP"
+              required
+            >
           </div>
           <div class="mb-2">
-            <label class="form-label">
-              Password
-              <!-- <span class="form-label-description">
-                <a href="#">I forgot password</a>
-              </span> -->
-            </label>
+            <label class="form-label">Password</label>
             <div class="input-group input-group-flat">
               <input
                 v-model="dataForm.password"
                 type="password"
                 class="form-control"
-                placeholder="Your password"
+                placeholder="Masukkan password"
                 autocomplete="off"
-              />
-              <span class="input-group-text">
-                <a
-                  href="#"
-                  class="link-secondary"
-                  title="Show password"
-                  data-bs-toggle="tooltip"
-                >
-                  <!-- Download SVG icon from http://tabler.io/icons/icon/eye -->
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    class="icon icon-1"
-                  >
-                    <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
-                    <path
-                      d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"
-                    />
-                  </svg>
-                </a>
-              </span>
+                required
+              >
             </div>
           </div>
           <div class="mb-2">
@@ -114,7 +83,7 @@ onMounted(() => {
                 v-model="dataForm.remember"
                 type="checkbox"
                 class="form-check-input"
-              />
+              >
               <span class="form-check-label">Remember me on this device</span>
             </label>
           </div>
@@ -140,7 +109,7 @@ onMounted(() => {
               />
               <template #fallback>
                 <a class="btn btn-4 w-100 disabled">
-                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  <span class="spinner-border spinner-border-sm me-2" />
                   Loading Google Sign-In...
                 </a>
               </template>

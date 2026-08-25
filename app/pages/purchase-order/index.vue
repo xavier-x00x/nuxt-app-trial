@@ -89,7 +89,7 @@ const handleBatchSubmit = async (selectedRows: PurchaseOrderList[], clearSelecti
 };
 
 const executeBatchSubmit = async () => {
-  const res = await submitForm("/purchase-orders/batch-submit", {
+  const res = await submitForm("/purchasing/purchase-orders/batch-submit", {
     method: "POST",
     body: { ids: pendingBatchIds.value },
     successMessage: `Berhasil mengajukan ${pendingBatchIds.value.length} PO!`,
@@ -114,7 +114,7 @@ const handleBatchApprove = async (selectedRows: PurchaseOrderList[], clearSelect
 };
 
 const executeBatchApprove = async () => {
-  const res = await submitForm("/purchase-orders/batch-approve", {
+  const res = await submitForm("/purchasing/purchase-orders/batch-approve", {
     method: "POST",
     body: { ids: pendingBatchIds.value },
     successMessage: `Berhasil menyetujui ${pendingBatchIds.value.length} PO!`,
@@ -130,7 +130,7 @@ const executeBatchApprove = async () => {
 const options = {
   columns,
   ajax: {
-    url: `/purchase-orders/pagination`,
+    url: `/purchasing/purchase-orders/pagination`,
   },
   pathKey: "purchase_orders",
   showActions: true,
@@ -259,7 +259,7 @@ const summaryData = computed(() => {
     <div class="modal modal-blur fade" :class="{ show: showBatchSubmitModal }" :style="{ display: showBatchSubmitModal ? 'block' : 'none' }" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
-          <button type="button" class="btn-close" @click="showBatchSubmitModal = false" aria-label="Close"></button>
+          <button type="button" class="btn-close" aria-label="Close" @click="showBatchSubmitModal = false"></button>
           <div class="modal-status bg-primary"></div>
           <div class="modal-body text-center py-4">
             <Icon name="i-tabler:send" class="icon mb-2 text-primary icon-lg" style="font-size: 3rem;" />
@@ -272,7 +272,7 @@ const summaryData = computed(() => {
             <div class="w-100">
               <div class="row">
                 <div class="col"><button type="button" class="btn w-100" @click="showBatchSubmitModal = false">Batal</button></div>
-                <div class="col"><button type="button" class="btn btn-primary w-100" @click="executeBatchSubmit" :disabled="submitting">Ya, Submit</button></div>
+                <div class="col"><button type="button" class="btn btn-primary w-100" :disabled="submitting" @click="executeBatchSubmit">Ya, Submit</button></div>
               </div>
             </div>
           </div>
@@ -285,7 +285,7 @@ const summaryData = computed(() => {
     <div class="modal modal-blur fade" :class="{ show: showBatchApproveModal }" :style="{ display: showBatchApproveModal ? 'block' : 'none' }" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
-          <button type="button" class="btn-close" @click="showBatchApproveModal = false" aria-label="Close"></button>
+          <button type="button" class="btn-close" aria-label="Close" @click="showBatchApproveModal = false"></button>
           <div class="modal-status bg-success"></div>
           <div class="modal-body text-center py-4">
             <Icon name="i-tabler:check" class="icon mb-2 text-green icon-lg" style="font-size: 3rem;" />
@@ -298,7 +298,7 @@ const summaryData = computed(() => {
             <div class="w-100">
               <div class="row">
                 <div class="col"><button type="button" class="btn w-100" @click="showBatchApproveModal = false">Batal</button></div>
-                <div class="col"><button type="button" class="btn btn-success w-100" @click="executeBatchApprove" :disabled="submitting">Ya, Approve</button></div>
+                <div class="col"><button type="button" class="btn btn-success w-100" :disabled="submitting" @click="executeBatchApprove">Ya, Approve</button></div>
               </div>
             </div>
           </div>
@@ -306,7 +306,6 @@ const summaryData = computed(() => {
       </div>
     </div>
     <div v-if="showBatchApproveModal" class="modal-backdrop fade show"></div>
-
   </div>
 </template>
 

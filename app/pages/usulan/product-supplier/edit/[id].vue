@@ -5,7 +5,7 @@ const id = String(route.params.id);
 const title = "Edit Usulan Product Supplier";
 useHead({ title });
 
-const { data: resp, error } = await useApiFetch<any>(`/master-data/${id}`);
+const { data: resp, error } = await useApiFetch<any>(`/system/proposals/${id}`);
 if (error.value || !resp.value?.data) {
   setFlash("Proposal tidak ditemukan", "error");
   navigateTo("/usulan/product-supplier");

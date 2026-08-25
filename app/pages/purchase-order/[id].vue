@@ -17,7 +17,7 @@ const loading = ref(true);
 
 const fetchDetail = async () => {
   loading.value = true;
-  const res = await useApi<{ data: PurchaseOrderDetail }>(`/purchase-orders/${id}`);
+  const res = await useApi<{ data: PurchaseOrderDetail }>(`/purchasing/purchase-orders/${id}`);
   if (res.data?.data) {
     po.value = res.data.data;
     title.value = `PO #${po.value.po_number}`;
@@ -73,7 +73,7 @@ const openApproveModal = () => {
 };
 
 const handleSubmit = async () => {
-  const res = await submitForm(`/purchase-orders/${id}/submit`, {
+  const res = await submitForm(`/purchasing/purchase-orders/${id}/submit`, {
     method: "POST",
     successMessage: "PO berhasil diajukan (Submitted)!",
   });
@@ -84,7 +84,7 @@ const handleSubmit = async () => {
 };
 
 const handleApprove = async () => {
-  const res = await submitForm(`/purchase-orders/${id}/approve`, {
+  const res = await submitForm(`/purchasing/purchase-orders/${id}/approve`, {
     method: "POST",
     successMessage: "PO berhasil disetujui (Approved)!",
   });
@@ -107,7 +107,7 @@ const handleCancel = async () => {
     alert("Alasan pembatalan wajib diisi");
     return;
   }
-  const res = await submitForm(`/purchase-orders/cancel`, {
+  const res = await submitForm(`/purchasing/purchase-orders/cancel`, {
     method: "POST",
     body: {
       id,
@@ -357,7 +357,7 @@ const handleCancel = async () => {
     <div class="modal modal-blur fade" :class="{ show: showSubmitModal }" :style="{ display: showSubmitModal ? 'block' : 'none' }" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
-          <button type="button" class="btn-close" @click="showSubmitModal = false" aria-label="Close"></button>
+          <button type="button" class="btn-close" aria-label="Close" @click="showSubmitModal = false"></button>
           <div class="modal-status bg-primary"></div>
           <div class="modal-body text-center py-4">
             <Icon name="i-tabler:send" class="icon mb-2 text-primary icon-lg" style="font-size: 3rem;" />
@@ -370,7 +370,7 @@ const handleCancel = async () => {
             <div class="w-100">
               <div class="row">
                 <div class="col"><button type="button" class="btn w-100" @click="showSubmitModal = false">Batal</button></div>
-                <div class="col"><button type="button" class="btn btn-primary w-100" @click="handleSubmit" :disabled="submitting">Ya, Submit</button></div>
+                <div class="col"><button type="button" class="btn btn-primary w-100" :disabled="submitting" @click="handleSubmit">Ya, Submit</button></div>
               </div>
             </div>
           </div>
@@ -383,7 +383,7 @@ const handleCancel = async () => {
     <div class="modal modal-blur fade" :class="{ show: showApproveModal }" :style="{ display: showApproveModal ? 'block' : 'none' }" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
-          <button type="button" class="btn-close" @click="showApproveModal = false" aria-label="Close"></button>
+          <button type="button" class="btn-close" aria-label="Close" @click="showApproveModal = false"></button>
           <div class="modal-status bg-success"></div>
           <div class="modal-body text-center py-4">
             <Icon name="i-tabler:check" class="icon mb-2 text-green icon-lg" style="font-size: 3rem;" />
@@ -396,7 +396,7 @@ const handleCancel = async () => {
             <div class="w-100">
               <div class="row">
                 <div class="col"><button type="button" class="btn w-100" @click="showApproveModal = false">Batal</button></div>
-                <div class="col"><button type="button" class="btn btn-success w-100" @click="handleApprove" :disabled="submitting">Ya, Approve</button></div>
+                <div class="col"><button type="button" class="btn btn-success w-100" :disabled="submitting" @click="handleApprove">Ya, Approve</button></div>
               </div>
             </div>
           </div>

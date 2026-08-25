@@ -1,14 +1,13 @@
-<!-- eslint-disable vue/html-self-closing -->
 <script setup lang="ts">
 import type { Column } from "~/components/DataTable3.vue";
 
-const { syncData } = useSyncRoutes(); // untuk sync data dari route
+const { syncData } = useSyncRoutes();
 const { openConfirmDelete } = useConfirmDelete();
-const title = "Permission";
+const title = "Daftar Hak Akses (Permissions)";
 useHead({ title });
 
 interface DataList {
-  id: number;
+  id: string;
   path: string;
   name: string;
   updated_at: string;
@@ -17,28 +16,28 @@ interface DataList {
 const columns: Column<DataList>[] = [
   {
     key: "path",
-    label: "path",
+    label: "Permission Path / Scope",
   },
   {
     key: "name",
-    label: "name",
+    label: "Deskripsi Hak Akses",
     sortable: false,
   },
   {
     key: "updated_at",
-    label: "updated at",
+    label: "Terakhir Diubah",
     className: "text-center",
   },
 ];
 
 const load_data = ref(false);
-const tableRef = ref(); // table ref catatan: ref dikosongkan untuk element
+const tableRef = ref();
 
 const onClickHandler = async () => {
   load_data.value = true;
   await syncData();
   load_data.value = false;
-  tableRef.value?.reload(); // update data list;
+  tableRef.value?.reload();
 };
 
 const { success, submitForm } = useForm2();
@@ -59,29 +58,29 @@ const options = {
   showActions: true,
 };
 </script>
+
 <template>
   <div>
-    <PageHeader :title="title" icon="i-tabler:package">
-      <a
+    <PageHeader :title="title" icon="i-tabler:lock-access">
+      <button
         :disabled="load_data"
-        href="#"
-        class="btn btn-primary rounded-1 d-none d-sm-inline-block"
+        class="btn btn-outline-primary rounded-1 d-none d-sm-inline-block"
         @click.prevent="onClickHandler"
       >
-        <Icon name="i-tabler:replace-filled" class="icon icon-2 me-0" />
-        Sync Data
-      </a>
+        <Icon name="i-tabler:refresh" class="icon icon-2 me-1" />
+        {{ load_data ? 'Sinkronisasi...' : 'Sinkronisasi Route' }}
+      </button>
     </PageHeader>
     <PageBody>
       <DataTable3 ref="tableRef" :options="options">
-        <!-- custom cell qty -->
-        <!-- <template #cell-qty="{ value }">
-          <span
-            :class="['badge', (value as number) > 50 ? 'bg-success' : 'bg-danger']"
-          >
-            {{ value }}
-          </span>
-        </template> -->
+        <template #cell-path="{ value }">
+          <code class="text-primary font-monospace fs-5">{{ value }}</code>
+        </template>
+
+        <template #cell-name="{ value }">
+          <span class="fw-medium">{{ value }}</span>
+        </template>
+
         <template #cell-updated_at="{ value }">
           {{ formatDate(value as string) }}
         </template>
@@ -90,16 +89,15 @@ const options = {
         <template #row-actions="{ row }">
           <a
             href="#"
-            class="btn btn-sm py-1 px-2 rounded-1 text-nowrap"
+            class="btn btn-sm py-1 px-2 rounded-1 text-nowrap text-danger"
             @click.prevent="openConfirmDelete(row.id, deleteItem)"
           >
             <Icon name="i-tabler:trash" class="icon icon-2" />
-            Delete
+            Hapus
           </a>
         </template>
       </DataTable3>
     </PageBody>
-    <!-- <ui-prompt ref="promptElx" /> -->
     <ui-confirm-delete-modal />
   </div>
 </template>

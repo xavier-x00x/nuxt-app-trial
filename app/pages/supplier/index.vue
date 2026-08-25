@@ -61,7 +61,7 @@ const tableRef = ref();
 const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: string) => {
-  await submitForm(`/suppliers/${id}`, {
+  await submitForm(`/purchasing/suppliers/${id}`, {
     method: "DELETE",
   });
   if (success.value) tableRef.value?.removeRow(id);
@@ -85,7 +85,7 @@ const showDetail = async (row: DataList) => {
 
   detailModal.value?.show();
 
-  const { data, error } = await useApi<{ data: DataList }>(`/suppliers/${row.id}`);
+  const { data, error } = await useApi<{ data: DataList }>(`/purchasing/suppliers/${row.id}`);
   if (!error && data?.data) {
     selectedSupplier.value = data.data;
   }
@@ -95,7 +95,7 @@ const showDetail = async (row: DataList) => {
 const options = {
   columns,
   ajax: {
-    url: `/suppliers/pagination`,
+    url: `/purchasing/suppliers/pagination`,
   },
   pathKey: "suppliers",
   showActions: true,

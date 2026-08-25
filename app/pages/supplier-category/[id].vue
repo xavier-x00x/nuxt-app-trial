@@ -24,7 +24,7 @@ const dataForm = ref<SupplierCategory>({
 });
 
 if (id.value !== "new") {
-  const { data: resp, error } = await useApiFetch<SupplierCategoryResponse>(`/supplier-categories/${id.value}`);
+  const { data: resp, error } = await useApiFetch<SupplierCategoryResponse>(`/purchasing/supplier-categories/${id.value}`);
   if (error.value || !resp.value) {
     setFlash("Data kategori supplier tidak ditemukan", "error");
     navigateTo("/supplier-category");
@@ -40,7 +40,7 @@ if (id.value !== "new") {
 const form = ref<HTMLFormElement>();
 const { loading, success, errors, formatError, submitForm } = useForm2();
 
-const { url: submitUrl, method: submitMethod } = useResource("supplier-categories", id);
+const { url: submitUrl, method: submitMethod } = useResource("purchasing/supplier-categories", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {

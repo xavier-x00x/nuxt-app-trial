@@ -19,9 +19,9 @@
 
       <!-- AutoNumeric Input -->
       <input
+        :id="inputId"
         ref="inputRef"
         type="text"
-        :id="inputId"
         :class="[
           'form-control rounded-1 text-end',
           { 'is-invalid': !!error },

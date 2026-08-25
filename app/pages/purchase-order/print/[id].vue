@@ -48,7 +48,7 @@ function buildPORows(p: PurchaseOrderDetail): Record<string, unknown>[] {
 onMounted(async () => {
   loading.value = true
   try {
-    const res = await useApi<{ data: PurchaseOrderDetail }>(`/purchase-orders/${id}`)
+    const res = await useApi<{ data: PurchaseOrderDetail }>(`/purchasing/purchase-orders/${id}`)
     if (res.data?.data) {
       po.value = res.data.data
       title.value = `Cetak PO #${po.value.po_number}`

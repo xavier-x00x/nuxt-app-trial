@@ -149,10 +149,10 @@ watch(
 
           try {
             const [productRes, suppliersRes, priceRes, uomConvRes] = await Promise.all([
-              useApi<any>(`/products/${pid}`),
-              useApi<any>(`/products/${pid}/suppliers`),
-              useApi<any>(`/product-prices/product/${pid}`),
-              useApi<any>(`/product-uoms/product/${pid}`)
+              useApi<any>(`/catalog/products/${pid}`),
+              useApi<any>(`/catalog/products/${pid}/suppliers`),
+              useApi<any>(`/catalog/product-prices/product/${pid}`),
+              useApi<any>(`/catalog/product-uoms/product/${pid}`)
             ]);
 
             const productData = productRes.data?.data;
@@ -466,9 +466,9 @@ const onSubmit = async () => {
   };
 
   if (isEdit.value) {
-    await submitForm(`/master-data/${props.id}`, { method: "PUT", body: dataPayload });
+    await submitForm(`/system/proposals/${props.id}`, { method: "PUT", body: dataPayload });
   } else {
-    await submitForm("/master-data", { method: "POST", body: dataPayload });
+    await submitForm("/system/proposals", { method: "POST", body: dataPayload });
   }
   if (success.value) {
     navigateTo(props.basePath);
@@ -487,7 +487,6 @@ const onSubmit = async () => {
         <div class="row justify-content-center">
           <div class="col-xl-12 col-md-12 col-sm-12">
             <div class="row align-items-stretch mb-4">
-              
               <div class="col-md-6">
                 <div v-if="items.length > 0" class="p-3 border rounded-1 bg-body-secondary h-100">
                   <label class="form-label fw-bold mb-2">Price List Utama untuk Usulan Ini <span class="text-danger">*</span></label>
@@ -496,7 +495,7 @@ const onSubmit = async () => {
                     v-model:display-value="globalPriceListIdText"
                     v-model:selected-data="globalPriceListIdObj"
                     value-key="id"
-                    api-url="/price-lists/pagination"
+                    api-url="/catalog/price-lists/pagination"
                     xname="global_price_list_id"
                     placeholder="Pilih Price List..."
                     :clearable="true"
@@ -511,8 +510,8 @@ const onSubmit = async () => {
               </div>
               <div class="col-md-6 d-flex flex-column">
                 <ui-textarea
-                  class="flex-grow-1"
                   v-model="reason"
+                  class="flex-grow-1"
                   label="Reason"
                   placeholder="Optional reason for this proposal"
                   :error="formatError('Reason', 'reason')"
@@ -555,7 +554,7 @@ const onSubmit = async () => {
                         v-model:display-value="item.product_id_text"
                         v-model:selected-data="item.product_id_obj"
                         value-key="id"
-                        api-url="/products/pagination"
+                        api-url="/catalog/products/pagination"
                         xname="product_id"
                         placeholder="Select Product"
                         :clearable="true"
@@ -566,17 +565,19 @@ const onSubmit = async () => {
                     </td>
                     
                     <td>
-                      <select v-if="item._valid_uoms && item._valid_uoms.length > 0" 
+                      <select
+                        v-if="item._valid_uoms && item._valid_uoms.length > 0" 
                         v-model="item.uom_id" 
                         class="form-select" 
                         :class="{ 'is-invalid': formatError(`UOM ${idx + 1}`, `items[${idx}].uom_id`) }" 
                         @change="() => { 
-                           const u = item._valid_uoms.find((o: any) => o.id === item.uom_id); 
-                           if (u) { 
-                             item.uom_id_text = u.name; 
-                             item.uom_id_obj = u; 
-                           } 
-                        }">
+                          const u = item._valid_uoms.find((o: any) => o.id === item.uom_id); 
+                          if (u) { 
+                            item.uom_id_text = u.name; 
+                            item.uom_id_obj = u; 
+                          } 
+                        }"
+                      >
                         <option v-for="opt in item._valid_uoms" :key="opt.id" :value="opt.id">
                           {{ opt.name }}
                         </option>
@@ -584,8 +585,8 @@ const onSubmit = async () => {
                       <select v-else class="form-select" disabled>
                         <option>Pilih Product</option>
                       </select>
-                      <div class="invalid-feedback d-block" v-if="formatError(`UOM ${idx + 1}`, `items[${idx}].uom_id`)">
-                         {{ formatError(`UOM ${idx + 1}`, `items[${idx}].uom_id`) }}
+                      <div v-if="formatError(`UOM ${idx + 1}`, `items[${idx}].uom_id`)" class="invalid-feedback d-block">
+                        {{ formatError(`UOM ${idx + 1}`, `items[${idx}].uom_id`) }}
                       </div>
                     </td>
 
@@ -608,7 +609,8 @@ const onSubmit = async () => {
                       </td>
 
                       <td>
-                        <ui-input2 v-if="item._action === 'UPDATE'"
+                        <ui-input2
+                          v-if="item._action === 'UPDATE'"
                           v-model="item._old_price"
                           type="number"
                           :readonly="true"
@@ -622,7 +624,7 @@ const onSubmit = async () => {
                           v-model="item.markup_pct"
                           type="number"
                           placeholder="%"
-                          :decimal=2
+                          :decimal="2"
                           :error="formatError(`Markup ${idx + 1}`, `items[${idx}].markup_pct`)"
                         />
                       </td>
@@ -649,7 +651,7 @@ const onSubmit = async () => {
                     </template>
 
                     <td class="text-center">
-                      <button v-if="items.length > 1" type="button" class="btn btn-sm btn-link text-danger p-1" @click="removeItem(idx)" title="Hapus Item">
+                      <button v-if="items.length > 1" type="button" class="btn btn-sm btn-link text-danger p-1" title="Hapus Item" @click="removeItem(idx)">
                         <Icon name="i-tabler:trash" style="font-size: 1.25rem;" />
                       </button>
                     </td>

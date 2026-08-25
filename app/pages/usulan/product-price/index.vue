@@ -5,7 +5,7 @@ useHead({ title });
 const { loading, submitForm } = useForm2();
 
 const handleGenerate = async (reload: () => void) => {
-  const res = await submitForm("/master-data/generate-prices", {
+  const res = await submitForm("/system/proposals/generate-prices", {
     method: "POST",
     successMessage: "Berhasil menghasilkan usulan harga!",
   });
@@ -16,7 +16,7 @@ const handleGenerate = async (reload: () => void) => {
 </script>
 
 <template>
-  <UsulanList entityType="PRODUCT_PRICE" :title="title" icon="i-tabler:currency-dollar" basePath="/usulan/product-price">
+  <UsulanList entity-type="PRODUCT_PRICE" :title="title" icon="i-tabler:currency-dollar" base-path="/usulan/product-price">
     <template #actions="{ reload }">
       <button
         type="button"

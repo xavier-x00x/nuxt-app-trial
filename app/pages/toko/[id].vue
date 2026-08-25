@@ -32,7 +32,7 @@ const dataForm = ref<Store>({
 });
 
 if (id.value !== "new") {
-  const { data: resp, error } = await useApiFetch<StoreResponse>(`/stores/${id.value}`);
+  const { data: resp, error } = await useApiFetch<StoreResponse>(`/inventory/stores/${id.value}`);
   if (error.value || !resp.value) {
     setFlash("Data toko tidak ditemukan", "error");
     navigateTo("/toko");
@@ -44,7 +44,7 @@ if (id.value !== "new") {
 const form = ref<HTMLFormElement>();
 const { loading, success, errors, formatError, submitForm } = useForm2();
 
-const { url: submitUrl, method: submitMethod } = useResource("stores", id);
+const { url: submitUrl, method: submitMethod } = useResource("inventory/stores", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {

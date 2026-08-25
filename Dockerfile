@@ -3,34 +3,40 @@ FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm 9
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else npm install; fi
+RUN pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-mintimeout 20000 && \
+    pnpm config set fetch-timeout 300000 && \
+    pnpm install --no-frozen-lockfile
 
 # Copy project files
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Stage 2: Production
 FROM node:22-slim AS production
 
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# Install pnpm 9
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
 # Install production dependencies only
-RUN if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile --prod; else npm install --only=production; fi
+RUN pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-mintimeout 20000 && \
+    pnpm config set fetch-timeout 300000 && \
+    pnpm install --no-frozen-lockfile --prod
 
 # Copy built application from builder stage
 COPY --from=builder /app/.output /app/.output

@@ -40,7 +40,7 @@ interface SupplierResponse { data: Supplier; message: string }
 const report = useJrxmlReport()
 const supplier = ref<Supplier | null>(null)
 
-const { data: resp, error: fetchError } = await useApiFetch<SupplierResponse>(`/suppliers/${id.value}`)
+const { data: resp, error: fetchError } = await useApiFetch<SupplierResponse>(`/purchasing/suppliers/${id.value}`)
 if (fetchError.value || !resp.value) {
   setFlash('Data supplier tidak ditemukan', 'error')
   navigateTo('/supplier')

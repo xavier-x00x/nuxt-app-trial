@@ -62,9 +62,9 @@ const pageLoading = ref(true);
 const loadMasterData = async () => {
   pageLoading.value = true;
   const [whRes, storeRes, accountRes] = await Promise.all([
-    useApi<{ data: any[] }>("/warehouses"),
-    useApi<{ data: any[] }>("/stores"),
-    useApi<{ data: any[] }>("/accounts/type/LIABILITY"),
+    useApi<{ data: any[] }>("/inventory/warehouses"),
+    useApi<{ data: any[] }>("/inventory/stores"),
+    useApi<{ data: any[] }>("/finance/accounts/type/LIABILITY"),
   ]);
 
   if (whRes.data?.data) warehouses.value = whRes.data.data;
@@ -73,12 +73,12 @@ const loadMasterData = async () => {
     apAccounts.value = accountRes.data.data;
   } else {
     // Fallback if type endpoint is not available, load general accounts
-    const allAccRes = await useApi<{ data: any[] }>("/accounts");
+    const allAccRes = await useApi<{ data: any[] }>("/finance/accounts");
     if (allAccRes.data?.data) apAccounts.value = allAccRes.data.data;
   }
 
   if (isEdit.value && editId.value) {
-    const grRes = await useApi<{ data: GoodsReceiptDetail }>(`/goods-receipts/${editId.value}`);
+    const grRes = await useApi<{ data: GoodsReceiptDetail }>(`/purchasing/goods-receipts/${editId.value}`);
     if (grRes.data?.data) {
       const d = grRes.data.data;
       grNumber.value = d.gr_number || "";
@@ -134,7 +134,7 @@ const loadMasterData = async () => {
 watch(selectedPOObj, async (newPO) => {
   if (newPO && !isEdit.value) {
     pageLoading.value = true;
-    const poRes = await useApi<{ data: PurchaseOrderDetail }>(`/purchase-orders/${newPO.id}`);
+    const poRes = await useApi<{ data: PurchaseOrderDetail }>(`/purchasing/purchase-orders/${newPO.id}`);
     if (poRes.data?.data) {
       const p = poRes.data.data;
       form.value.purchase_order_id = p.id;
@@ -327,7 +327,7 @@ const supplierNameDisplay = computed(() => {
                       v-model:display-value="poDisplayValue"
                       v-model:selected-data="selectedPOObj"
                       value-key="id"
-                      api-url="/purchase-orders/pagination"
+                      api-url="/purchasing/purchase-orders/pagination"
                       xname="purchase_order_id"
                       placeholder="-- Pilih Purchase Order --"
                       label="Purchase Order Referensi"

@@ -7,7 +7,7 @@ import type {
 
 export function usePurchaseOrder() {
   const getPODetail = async (id: string) => {
-    const res = await useApi<{ data: PurchaseOrderDetail }>(`/purchase-orders/${id}`);
+    const res = await useApi<{ data: PurchaseOrderDetail }>(`/purchasing/purchase-orders/${id}`);
     if (res.data?.data) {
       return res.data.data;
     }

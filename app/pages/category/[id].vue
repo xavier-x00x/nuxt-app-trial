@@ -47,7 +47,7 @@ const mapCategoryForm = (data: Category): Category => ({
 const markup = ref<any>(0);
 
 if (id.value !== "new") {
-  const { data: resp, error } = await useApiFetch<CategoryResponse>(`/categories/${id.value}`);
+  const { data: resp, error } = await useApiFetch<CategoryResponse>(`/catalog/categories/${id.value}`);
   if (error.value || !resp.value) {
     setFlash("Data kategori tidak ditemukan", "error");
     navigateTo("/category");
@@ -60,7 +60,7 @@ if (id.value !== "new") {
 const form = ref<HTMLFormElement>();
 const { loading, success, errors, formatError, submitForm } = useForm2();
 
-const { url: submitUrl, method: submitMethod } = useResource("categories", id);
+const { url: submitUrl, method: submitMethod } = useResource("catalog/categories", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {
@@ -115,7 +115,7 @@ const onSubmit = async () => {
               v-model="dataForm.parent_id"
               v-model:selected-data="dataForm.parent"
               xname="parent_id"
-              api-url="/categories/pagination"
+              api-url="/catalog/categories/pagination"
               value-key="id"
               label="Parent"
               :error="formatError('Parent','parent_id')"

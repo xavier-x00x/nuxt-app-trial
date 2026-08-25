@@ -49,5 +49,14 @@
     "sass-embedded": "^1.99.0",
     "sharp": "^0.34.5",
     "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
+      "sass-embedded",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }

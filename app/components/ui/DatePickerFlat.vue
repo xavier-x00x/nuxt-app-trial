@@ -3,6 +3,7 @@ const props = withDefaults(defineProps<{
   modelValue?: string;
   placeholder?: string;
 }>(), {
+  modelValue: "",
   placeholder: "Pilih tanggal",
 });
 

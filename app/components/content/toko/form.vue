@@ -41,7 +41,7 @@ const dataForm = ref<Toko>({
 
 if (props.id) {
   const { data: tokoResponse, error: tokoError, status, refresh: refreshToko, pending } = await useApiFetch<TokoResponse>(
-    `/stores/${props.id}`
+    `/inventory/stores/${props.id}`
   );
 
   watchEffect(() => {

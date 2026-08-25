@@ -46,76 +46,80 @@
       </span>
     </div>
 
-    <div 
-      v-if="isOpen"
-      :class="['dropdown-menu p-0 show shadow-sm border', { 'dropup-active': dropup }]"
-      :style="{ zIndex: 1050, minWidth: '100%', whiteSpace: 'nowrap' }"
-    >
-      <!-- Search Input inside dropdown -->
-      <div class="p-0 border-bottom dropdown-search-header">
-        <div class="input-icon">
-          <span class="input-icon-addon">
-            <Icon name="i-tabler:search" size="1rem" class="text-muted" />
-          </span>
-          <input
-            ref="searchInputRef"
-            v-model="searchQuery"
-            type="text"
-            class="form-control rounded-0 rounded-top border-0"
-            placeholder="Ketik untuk mencari..."
-            @keydown.down.prevent="navigateItems('next')"
-            @keydown.up.prevent="navigateItems('prev')"
-            @keydown.enter.prevent="selectHighlighted"
-            @keydown.esc.prevent="closeDropdown"
-          />
-        </div>
-      </div>
-
-      <!-- Items List -->
-      <div
-        ref="listRef"
-        class="options-list"
-        :style="{ maxHeight: maxHeight + 'px', overflowY: 'auto' }"
-        @scroll="handleScroll"
+    <!-- Dropdown Menu (Teleported to body to avoid overflow clipping) -->
+    <Teleport to="body">
+      <div 
+        v-if="isOpen"
+        ref="menuRef"
+        :class="['dropdown-menu p-0 show shadow border', { 'dropup-active': dropup }]"
+        :style="dropdownStyle"
       >
-        <div
-          v-for="(item, index) in filteredItems"
-          :key="String(item[valueKey]) + '_' + index"
-          :class="[
-            'dropdown-item d-flex align-items-center py-2 px-3',
-            { 'active-highlight': index === activeIndex }
-          ]"
-          @click="onSelectItem(item as T)"
-          @mouseenter="activeIndex = index"
-        >
-          <slot name="option" :item="item">
-            {{ formatItem(item as T) }}
-          </slot>
+        <!-- Search Input inside dropdown -->
+        <div class="p-0 border-bottom dropdown-search-header">
+          <div class="input-icon">
+            <span class="input-icon-addon">
+              <Icon name="i-tabler:search" size="1rem" class="text-muted" />
+            </span>
+            <input
+              ref="searchInputRef"
+              v-model="searchQuery"
+              type="text"
+              class="form-control rounded-0 rounded-top border-0"
+              placeholder="Ketik untuk mencari..."
+              @keydown.down.prevent="navigateItems('next')"
+              @keydown.up.prevent="navigateItems('prev')"
+              @keydown.enter.prevent="selectHighlighted"
+              @keydown.esc.prevent="closeDropdown"
+            />
+          </div>
         </div>
 
-        <!-- Loading State -->
-        <div v-if="loading" class="dropdown-item text-center text-muted py-2">
-          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-          Memuat data...
-        </div>
-
-        <!-- Empty State -->
+        <!-- Items List -->
         <div
-          v-else-if="filteredItems.length === 0"
-          class="dropdown-item text-muted text-center py-3"
+          ref="listRef"
+          class="options-list"
+          :style="{ maxHeight: maxHeight + 'px', overflowY: 'auto' }"
+          @scroll="handleScroll"
         >
-          Tidak ada data
-        </div>
+          <div
+            v-for="(item, index) in filteredItems"
+            :key="String(item[valueKey]) + '_' + index"
+            :class="[
+              'dropdown-item d-flex align-items-center py-2 px-3',
+              { 'active-highlight': index === activeIndex }
+            ]"
+            @click="onSelectItem(item as T)"
+            @mouseenter="activeIndex = index"
+          >
+            <slot name="option" :item="item">
+              {{ formatItem(item as T) }}
+            </slot>
+          </div>
 
-        <!-- All Loaded State -->
-        <div
-          v-if="filteredItems.length > 0 && !loading && !hasMore"
-          class="dropdown-item text-muted text-center py-2 small"
-        >
-          Semua data telah dimuat
+          <!-- Loading State -->
+          <div v-if="loading" class="dropdown-item text-center text-muted py-2">
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Memuat data...
+          </div>
+
+          <!-- Empty State -->
+          <div
+            v-else-if="filteredItems.length === 0"
+            class="dropdown-item text-muted text-center py-3"
+          >
+            Tidak ada data
+          </div>
+
+          <!-- All Loaded State -->
+          <div
+            v-if="filteredItems.length > 0 && !loading && !hasMore"
+            class="dropdown-item text-muted text-center py-2 small"
+          >
+            Semua data telah dimuat
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
     <!-- Error Message -->
     <div v-if="error" class="invalid-feedback d-block mt-1">
@@ -186,6 +190,8 @@ const hasLabelOrError = computed(() => !!props.label || !!props.error);
 const isOpen = ref(false);
 const dropup = ref(false);
 const wrapperRef = ref<HTMLElement | null>(null);
+const menuRef = ref<HTMLElement | null>(null);
+const dropdownStyle = ref<Record<string, string>>({});
 const searchInputRef = ref<HTMLInputElement | null>(null);
 const listRef = ref<HTMLElement | null>(null);
 
@@ -327,19 +333,32 @@ const toggleDropdown = () => {
   isOpen.value ? closeDropdown() : openDropdown();
 };
 
-const openDropdown = () => {
-  if (wrapperRef.value) {
-    const rect = wrapperRef.value.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceNeeded = (props.maxHeight || 200) + 60;
-    dropup.value = spaceBelow < spaceNeeded && rect.top > spaceNeeded;
-  }
+const updateDropdownPosition = () => {
+  if (!wrapperRef.value || !isOpen.value) return;
+  const rect = wrapperRef.value.getBoundingClientRect();
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const spaceNeeded = (props.maxHeight || 200) + 60;
+  const isDropup = spaceBelow < spaceNeeded && rect.top > spaceNeeded;
+  dropup.value = isDropup;
 
+  dropdownStyle.value = {
+    position: 'fixed',
+    top: isDropup ? 'auto' : `${rect.bottom + 2}px`,
+    bottom: isDropup ? `${window.innerHeight - rect.top + 2}px` : 'auto',
+    left: `${rect.left}px`,
+    width: `${Math.max(rect.width, 240)}px`,
+    zIndex: '99999',
+  };
+};
+
+const openDropdown = () => {
   isOpen.value = true;
+  updateDropdownPosition();
   searchQuery.value = "";
   fetchData(true);
 
   nextTick(() => {
+    updateDropdownPosition();
     searchInputRef.value?.focus();
     if (listRef.value) listRef.value.scrollTop = 0;
   });
@@ -388,13 +407,32 @@ const selectHighlighted = () => {
 };
 
 const clickOutsideHandler = (event: MouseEvent) => {
-  if (wrapperRef.value && !wrapperRef.value.contains(event.target as Node)) {
+  const target = event.target as Node;
+  if (
+    wrapperRef.value && !wrapperRef.value.contains(target) &&
+    (!menuRef.value || !menuRef.value.contains(target))
+  ) {
     closeDropdown();
   }
 };
 
-onMounted(() => document.addEventListener('click', clickOutsideHandler));
-onBeforeUnmount(() => document.removeEventListener('click', clickOutsideHandler));
+const onScrollOrResize = () => {
+  if (isOpen.value) {
+    updateDropdownPosition();
+  }
+};
+
+onMounted(() => {
+  document.addEventListener('click', clickOutsideHandler);
+  window.addEventListener('scroll', onScrollOrResize, true);
+  window.addEventListener('resize', onScrollOrResize);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', clickOutsideHandler);
+  window.removeEventListener('scroll', onScrollOrResize, true);
+  window.removeEventListener('resize', onScrollOrResize);
+});
 </script>
 
 <style scoped>
@@ -438,8 +476,6 @@ onBeforeUnmount(() => document.removeEventListener('click', clickOutsideHandler)
 
 .dropdown-menu {
   display: block;
-  top: 100%;
-  left: 0;
   max-height: 350px;
   overflow: hidden;
 }

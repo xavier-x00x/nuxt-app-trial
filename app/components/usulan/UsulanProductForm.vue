@@ -41,7 +41,7 @@ const parsePayload = (payload: any) => {
 
 const formatEntityText = (keyOrType: string, obj: any): string => {
   if (!obj) return "";
-  if (keyOrType === "category_id" || keyOrType === "tax_id" || keyOrType === "base_uom_id") {
+  if (keyOrType === "category_id" || keyOrType === "tax_id" || keyOrType === "base_uom_id" || keyOrType === "brand_id" || keyOrType === "BRAND") {
     return obj.name || obj.code || obj.id || "";
   }
   if (keyOrType === "PRODUCT" || (obj && typeof obj === "object" && "sku" in obj)) {
@@ -61,7 +61,7 @@ const formatEntityText = (keyOrType: string, obj: any): string => {
 const resolveEntityText = async (item: Record<string, any>) => {
   if (!item.entity_id) return;
   try {
-    const { data } = await useApi<any>(`/products/${item.entity_id}`);
+    const { data } = await useApi<any>(`/catalog/products/${item.entity_id}`);
     if (data?.data) {
       item.entity_text = formatEntityText("PRODUCT", data.data);
       item._selected_obj = data.data;
@@ -88,13 +88,16 @@ watch(
         item.entity_text = formatEntityText("PRODUCT", item._selected_obj);
         item._last_selected_id = item._selected_obj.id;
         
-        const fields = ["sku", "barcode", "name", "variant", "category_id", "base_uom_id", "length", "width", "height", "weight", "is_stackable", "is_stockable", "is_taxable", "tax_id", "max_stack_layer"];
+        const fields = ["sku", "barcode", "name", "variant", "category_id", "brand_id", "base_uom_id", "length", "width", "height", "weight", "is_stackable", "is_stockable", "is_taxable", "tax_id", "max_stack_layer"];
         for (const field of fields) {
           item[field] = item._selected_obj[field] !== undefined ? item._selected_obj[field] : null;
         }
 
         if (item._selected_obj.category) item.category_id_text = item._selected_obj.category.name;
         else if (item._selected_obj.category_name) item.category_id_text = item._selected_obj.category_name;
+
+        if (item._selected_obj.brand) item.brand_id_text = item._selected_obj.brand.name;
+        else if (item._selected_obj.brand_name) item.brand_id_text = item._selected_obj.brand_name;
 
         if (item._selected_obj.base_uom) item.base_uom_id_text = item._selected_obj.base_uom.name;
         else if (item._selected_obj.uom_name) item.base_uom_id_text = item._selected_obj.uom_name;
@@ -105,9 +108,10 @@ watch(
         item.entity_id = null;
         item.entity_text = "";
         item._last_selected_id = null;
-        const fields = ["sku", "barcode", "name", "variant", "category_id", "base_uom_id", "length", "width", "height", "weight", "is_stackable", "is_stockable", "is_taxable", "tax_id", "max_stack_layer"];
+        const fields = ["sku", "barcode", "name", "variant", "category_id", "brand_id", "base_uom_id", "length", "width", "height", "weight", "is_stackable", "is_stockable", "is_taxable", "tax_id", "max_stack_layer"];
         for (const field of fields) item[field] = null;
         item.category_id_text = "";
+        item.brand_id_text = "";
         item.base_uom_id_text = "";
         item.tax_id_text = "";
       }
@@ -124,9 +128,8 @@ watch(
       if (!item) return;
       if (id && id !== oldIds?.[idx]) {
         try {
-          const { data } = await useApi<any>(`/categories/${id}/next-sku`);
+          const { data } = await useApi<any>(`/catalog/categories/${id}/next-sku`);
           if (data?.data?.sku ) {
-            // && !item.sku
             item.sku = data.data.sku;
           }
         } catch {}
@@ -135,58 +138,45 @@ watch(
   }
 );
 
-const generateBarcode = (item: any) => {
-  const random12 = Math.floor(100000000000 + Math.random() * 900000000000).toString();
-  const random13 = random12 + Math.floor(Math.random() * 10).toString();
-  item.barcode = random13;
-};
-
-watch(proposalType, (newVal, oldVal) => {
-  if (newVal !== oldVal && !isEdit.value) {
-    items.value = [{}];
-  }
-});
-
 if (props.proposal) {
-  fillForm(props.proposal);
-}
-
-function fillForm(proposal: any) {
-  proposalType.value = proposal.action_type;
+  const proposal = props.proposal;
+  proposalType.value = proposal.action_type || "CREATE";
   reason.value = proposal.reason || "";
   
-  items.value = proposal.items.map((item: any) => {
-    const base: Record<string, any> = { _item_id: item.id, entity_id: item.entity_id || null };
-    const parsedPayload = parsePayload(item.payload_json);
-    
-    if (proposal.action_type === "CREATE" || proposal.action_type === "UPDATE" || proposal.action_type === "DELETE") {
-      const snapshot = parsePayload(item.snapshot_json);
-      const displayVal = snapshot && Object.keys(snapshot).length ? formatEntityText("PRODUCT", snapshot) : (item.entity_id || "");
-      const merged = { 
-        ...base, ...parsedPayload, entity_text: displayVal,
-        _selected_obj: snapshot && Object.keys(snapshot).length ? snapshot : null,
-        _last_selected_id: item.entity_id
-      };
-      if (snapshot?.category?.name) merged.category_id_text = snapshot.category.name;
-      else if (snapshot?.category_id_text) merged.category_id_text = snapshot.category_id_text;
-
-      if (snapshot?.base_uom?.name) merged.base_uom_id_text = snapshot.base_uom.name;
-      else if (snapshot?.base_uom_id_text) merged.base_uom_id_text = snapshot.base_uom_id_text;
-
-      if (snapshot?.tax?.name) merged.tax_id_text = snapshot.tax.name;
-      else if (snapshot?.tax_id_text) merged.tax_id_text = snapshot.tax_id_text;
-      
-      return merged;
-    }
-    return base;
+  items.value = (proposal.items || []).map((item: any) => {
+    const parsed = parsePayload(item.payload_json);
+    const row: Record<string, any> = {
+      _item_id: item.id,
+      entity_id: item.entity_id,
+      _selected_obj: null,
+      ...parsed,
+    };
+    return row;
   });
 
   items.value.forEach((item: any) => {
-    if (proposal.action_type === "CREATE" || proposal.action_type === "UPDATE") {
-      if (item.entity_id && !item._selected_obj) resolveEntityText(item);
-      if (item.category_id && !item.category_id_text) resolveRelationText(item, "category_id", "/categories");
-      if (item.base_uom_id && !item.base_uom_id_text) resolveRelationText(item, "base_uom_id", "/uoms");
-      if (item.tax_id && !item.tax_id_text) resolveRelationText(item, "tax_id", "/taxes");
+    if (item.category_id && !item.category_id_text) {
+      resolveRelationText(item, 'category_id', '/catalog/categories');
+    }
+    if (item.brand_id && !item.brand_id_text) {
+      resolveRelationText(item, 'brand_id', '/catalog/brands');
+    }
+    if (item.base_uom_id && !item.base_uom_id_text) {
+      resolveRelationText(item, 'base_uom_id', '/catalog/uoms');
+    }
+    if (item.tax_id && !item.tax_id_text) {
+      resolveRelationText(item, 'tax_id', '/catalog/taxes');
+    }
+
+    if (proposal.action_type === "UPDATE") {
+      if (item.entity_id && !item._selected_obj) {
+        useApi<any>(`/catalog/products/${item.entity_id}`).then(({ data }) => {
+          if (data?.data) {
+            item._selected_obj = data.data;
+            item.entity_text = formatEntityText("PRODUCT", data.data);
+          }
+        });
+      }
     } else if (proposal.action_type === "DELETE") {
       if (item.entity_id && !item._selected_obj) resolveEntityText(item);
     }
@@ -195,6 +185,12 @@ function fillForm(proposal: any) {
 
 const addItem = () => {
   items.value.push({});
+};
+
+const generateBarcode = (item: any) => {
+  const prefix = "899";
+  const random = Math.floor(100000000 + Math.random() * 900000000).toString();
+  item.barcode = prefix + random;
 };
 
 const removeItem = (idx: number) => {
@@ -212,7 +208,7 @@ const onSubmit = async () => {
     items: items.value.map((item: any) => {
       let payload: any;
       if (proposalType.value === "CREATE" || proposalType.value === "UPDATE") {
-        const fields = ["sku", "barcode", "name", "variant", "category_id", "base_uom_id", "length", "width", "height", "weight", "is_stackable", "is_stockable", "is_taxable", "tax_id", "max_stack_layer"];
+        const fields = ["sku", "barcode", "name", "variant", "category_id", "brand_id", "base_uom_id", "length", "width", "height", "weight", "is_stackable", "is_stockable", "is_taxable", "tax_id", "max_stack_layer"];
         payload = {};
         for (const key of fields) {
           if (item[key] !== undefined) payload[key] = item[key];
@@ -231,9 +227,9 @@ const onSubmit = async () => {
   };
 
   if (isEdit.value) {
-    await submitForm(`/master-data/${props.id}`, { method: "PUT", body: dataPayload });
+    await submitForm(`/system/proposals/${props.id}`, { method: "PUT", body: dataPayload });
   } else {
-    await submitForm("/master-data", { method: "POST", body: dataPayload });
+    await submitForm("/system/proposals", { method: "POST", body: dataPayload });
   }
   if (success.value) navigateTo(props.basePath);
 };
@@ -261,32 +257,33 @@ const onSubmit = async () => {
             <hr class="my-3" />
             <label class="fw-semibold mb-3">Items Produk</label>
 
-            <div v-for="(item, idx) in items" :key="idx" class="border rounded-1 p-3 mb-3 position-relative bg-body shadow-sm">
-              <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+            <div v-for="(item, idx) in items" :key="idx" class="card card-body bg-light mb-3 border shadow-none">
+              <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="fw-bold text-primary small text-uppercase">Produk #{{ idx + 1 }}</span>
-                <button v-if="items.length > 1" type="button" class="btn btn-sm btn-link text-danger p-0 border-0 text-decoration-none d-flex align-items-center" @click="removeItem(idx)">
+                <button v-if="items.length > 1" type="button" class="btn btn-sm btn-outline-danger d-flex align-items-center rounded-1" @click="removeItem(idx)">
                   <Icon name="i-tabler:trash" class="icon me-1" style="font-size: 1.1rem;" /> Hapus
                 </button>
               </div>
 
               <!-- UPDATE/DELETE Mode Search -->
-              <div v-if="proposalType === 'UPDATE' || proposalType === 'DELETE'" class="mb-4">
+              <div v-if="proposalType === 'UPDATE' || proposalType === 'DELETE'" class="mb-3">
                 <label class="form-label">Cari Produk <span class="text-danger">*</span></label>
                 <UiSelectSearch5
                   v-model="item.entity_id"
                   v-model:display-value="item.entity_text"
-                  v-model:selected-data="item._selected_obj"
                   value-key="id"
-                  api-url="/products/pagination"
-                  xname="product_id"
-                  placeholder="Ketik nama atau SKU produk..."
+                  label-key="name"
+                  placeholder="Ketik SKU atau nama produk untuk mencari..."
+                  api-url="/catalog/products/pagination"
+                  xname="entity_id"
                   :clearable="true"
-                  :selected-format="(e) => formatEntityText('PRODUCT', e)"
-                  :select-format="(e) => formatEntityText('PRODUCT', e)"
+                  :error="formatError('Produk', `items[${idx}].entity_id`)"
+                  @selected-obj="(obj: any) => item._selected_obj = obj"
                 />
               </div>
 
-              <div v-if="proposalType === 'DELETE' && item._selected_obj" class="mt-3 p-3 bg-body-secondary rounded-1 border">
+              <!-- Ringkasan DELETE Mode -->
+              <div v-if="proposalType === 'DELETE' && item._selected_obj" class="card card-body bg-white border border-danger-subtle p-3 mb-2">
                 <div class="fw-semibold mb-2 small text-uppercase text-muted">Ringkasan Produk yang Akan Dihapus:</div>
                 <div class="row g-2 small">
                   <div class="col-6"><strong>SKU:</strong> {{ item._selected_obj.sku }}</div>
@@ -302,13 +299,17 @@ const onSubmit = async () => {
                   
                   <div class="col-md-6">
                     <label class="form-label mb-1">Kategori <span class="text-danger">*</span></label>
-                    <UiSelectSearch5 v-model="item.category_id" v-model:display-value="item.category_id_text" value-key="id" api-url="/categories/pagination" xname="category_id" placeholder="Pilih Kategori" :clearable="true" :error="formatError('Kategori', `items[${idx}].category_id`)" />
+                    <UiSelectSearch5 v-model="item.category_id" v-model:display-value="item.category_id_text" value-key="id" api-url="/catalog/categories/pagination" xname="category_id" placeholder="Pilih Kategori" :clearable="true" :error="formatError('Kategori', `items[${idx}].category_id`)" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label mb-1">Brand</label>
+                    <UiSelectSearch5 v-model="item.brand_id" v-model:display-value="item.brand_id_text" value-key="id" api-url="/catalog/brands/pagination" xname="brand_id" placeholder="Pilih Brand (Opsional)" :clearable="true" :error="formatError('Brand', `items[${idx}].brand_id`)" />
                   </div>
                   <div class="col-md-6">
                     <ui-input2 v-model="item.sku" label="SKU *" type="text" placeholder="Masukkan SKU" :error="formatError('SKU', `items[${idx}].sku`)" />
                   </div>
                   
-                  <div class="col-md-12">
+                  <div class="col-md-6">
                     <ui-input2 v-model="item.name" label="Nama Produk *" type="text" placeholder="Masukkan Nama Produk" :error="formatError('Nama Produk', `items[${idx}].name`)" />
                   </div>
                   <div class="col-md-6 mb-3">
@@ -316,14 +317,14 @@ const onSubmit = async () => {
                   </div>
                   <div class="col-md-6">
                     <label class="form-label mb-1">Satuan Dasar (Base UOM) <span class="text-danger">*</span></label>
-                    <UiSelectSearch5 v-model="item.base_uom_id" v-model:display-value="item.base_uom_id_text" value-key="id" api-url="/uoms/pagination" xname="base_uom_id" placeholder="Pilih Satuan" :clearable="true" :error="formatError('Satuan Dasar', `items[${idx}].base_uomid`)" />
+                    <UiSelectSearch5 v-model="item.base_uom_id" v-model:display-value="item.base_uom_id_text" value-key="id" api-url="/catalog/uoms/pagination" xname="base_uom_id" placeholder="Pilih Satuan" :clearable="true" :error="formatError('Satuan Dasar', `items[${idx}].base_uom_id`)" />
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
                       <label class="form-label mb-1">Barcode</label>
                       <div class="input-group">
                         <input v-model="item.barcode" type="text" class="form-control rounded-start-1" placeholder="Masukkan Barcode" autocomplete="off" />
-                        <button type="button" class="btn btn-outline-primary d-flex align-items-center rounded-end-1" @click="generateBarcode(item)" title="Generate Barcode">
+                        <button type="button" class="btn btn-outline-primary d-flex align-items-center rounded-end-1" title="Generate Barcode" @click="generateBarcode(item)">
                           <Icon name="i-tabler:barcode" class="me-1" />
                           Generate
                         </button>
@@ -371,10 +372,9 @@ const onSubmit = async () => {
                     </div>
                     <div v-if="item.is_taxable">
                       <label class="form-label">Pilih Jenis Pajak <span class="text-danger">*</span></label>
-                      <UiSelectSearch5 v-model="item.tax_id" v-model:display-value="item.tax_id_text" value-key="id" api-url="/taxes/pagination" xname="tax_id" placeholder="Pilih Pajak" :clearable="true" :error="formatError('Jenis Pajak', `items[${idx}].tax_id`)" />
+                      <UiSelectSearch5 v-model="item.tax_id" v-model:display-value="item.tax_id_text" value-key="id" api-url="/catalog/taxes/pagination" xname="tax_id" placeholder="Pilih Pajak" :clearable="true" :error="formatError('Jenis Pajak', `items[${idx}].tax_id`)" />
                     </div>
                   </div>
-
                 </div>
               </template>
             </div>

@@ -52,7 +52,7 @@ const { setFlash } = useFlash();
 const config = useRuntimeConfig();
 
 const deleteItem = async (id: string) => {
-  await submitForm(`/accounts/${id}`, {
+  await submitForm(`/finance/accounts/${id}`, {
     method: "DELETE",
   });
   if (success.value) tableRef.value?.removeRow(id);
@@ -61,7 +61,7 @@ const deleteItem = async (id: string) => {
 const options = {
   columns,
   ajax: {
-    url: `/accounts/pagination`,
+    url: `/finance/accounts/pagination`,
   },
   pathKey: "accounts",
   showActions: true,
@@ -122,7 +122,7 @@ const submitImport = async () => {
   formData.append("file", selectedFile.value);
 
   importLoading.value = true;
-  await submitForm(`/accounts/import`, {
+  await submitForm(`/finance/accounts/import`, {
     method: "POST",
     body: formData,
   });

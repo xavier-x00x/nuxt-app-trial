@@ -336,9 +336,9 @@ const onSubmit = async () => {
   };
 
   if (isEdit.value) {
-    await submitForm(`/master-data/${props.id}`, { method: "PUT", body: dataPayload });
+    await submitForm(`/system/proposals/${props.id}`, { method: "PUT", body: dataPayload });
   } else {
-    await submitForm("/master-data", { method: "POST", body: dataPayload });
+    await submitForm("/system/proposals", { method: "POST", body: dataPayload });
   }
   if (success.value) navigateTo(props.basePath);
 };
@@ -382,7 +382,7 @@ const onSubmit = async () => {
                   v-model:display-value="item.entity_text"
                   v-model:selected-data="item._selected_obj"
                   value-key="id"
-                  api-url="/product-uom-conversions/pagination"
+                  api-url="/catalog/product-uom-conversions/pagination"
                   xname="entity_id"
                   placeholder="Ketik untuk mencari..."
                   :clearable="true"
@@ -405,7 +405,6 @@ const onSubmit = async () => {
               <!-- CREATE & UPDATE Dynamic Fields -->
               <template v-if="proposalType === 'CREATE' || (proposalType === 'UPDATE' && item.entity_id)">
                 <div class="row g-3">
-
                   <div class="col-md-6">
                     <label class="form-label">Product <span class="text-danger">*</span></label>
                     <UiSelectSearch5
@@ -413,7 +412,7 @@ const onSubmit = async () => {
                       v-model:display-value="item.product_id_text"
                       v-model:selected-data="item.product_id_obj"
                       value-key="id"
-                      api-url="/products/pagination"
+                      api-url="/catalog/products/pagination"
                       xname="product_id"
                       placeholder="Select Product"
                       :clearable="true"
@@ -432,7 +431,7 @@ const onSubmit = async () => {
                       v-model:display-value="item.uom_id_text"
                       v-model:selected-data="item.uom_id_obj"
                       value-key="id"
-                      api-url="/uoms/pagination"
+                      api-url="/catalog/uoms/pagination"
                       xname="uom_id"
                       placeholder="Select UOM"
                       :clearable="true"
@@ -448,7 +447,7 @@ const onSubmit = async () => {
                       <label class="form-label mb-1">Barcode</label>
                       <div class="input-group">
                         <input v-model="item.barcode" type="text" class="form-control rounded-start-1" placeholder="Masukkan Barcode" autocomplete="off" />
-                        <button type="button" class="btn btn-outline-primary d-flex align-items-center rounded-end-1" @click="generateBarcode(item)" title="Generate Barcode">
+                        <button type="button" class="btn btn-outline-primary d-flex align-items-center rounded-end-1" title="Generate Barcode" @click="generateBarcode(item)">
                           <Icon name="i-tabler:barcode" class="me-1" />
                           Generate
                         </button>

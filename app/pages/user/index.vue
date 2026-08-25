@@ -2,7 +2,7 @@
 import type { Column } from "~/components/DataTable3.vue";
 
 const { openConfirmDelete } = useConfirmDelete();
-const title = "User Management";
+const title = "Manajemen Pengguna (User)";
 useHead({ title });
 
 interface DataList {
@@ -10,42 +10,41 @@ interface DataList {
   name: string;
   username: string;
   email: string;
-  store_name: string;
+  phone?: string;
+  store_id?: string;
+  store_name?: string;
   role: string;
+  is_active: boolean;
   updated_at: string;
 }
 
 const columns: Column<DataList>[] = [
   {
     key: "name",
-    label: "name",
-  },
-  {
-    key: "username",
-    label: "username",
+    label: "Nama & Username",
   },
   {
     key: "email",
-    label: "email",
-  },
-  {
-    key: "store_name",
-    label: "store",
-    className: "text-center",
+    label: "Email & Kontak",
   },
   {
     key: "role",
-    label: "role",
+    label: "Role / Jabatan",
+    className: "text-center",
+  },
+  {
+    key: "is_active",
+    label: "Status",
     className: "text-center",
   },
   {
     key: "updated_at",
-    label: "updated at",
+    label: "Terakhir Diubah",
     className: "text-center",
   },
 ];
 
-const tableRef = ref(); // table ref catatan: ref dikosongkan untuk element
+const tableRef = ref();
 const { success, submitForm } = useForm2();
 
 const deleteItem = async (id: string) => {
@@ -64,12 +63,42 @@ const options = {
   showActions: true,
 };
 </script>
+
 <template>
   <div>
-    <PageHeader :title="title" icon="i-tabler:package" />
+    <PageHeader :title="title" icon="i-tabler:users">
+      <NuxtLink
+        to="/user/new"
+        class="btn btn-primary rounded-1 d-none d-sm-inline-block"
+      >
+        <Icon name="i-tabler:plus" class="icon icon-2 me-0" />
+        Tambah Pengguna
+      </NuxtLink>
+    </PageHeader>
     <PageBody>
       <DataTable3 ref="tableRef" :options="options">
-        <!-- custom cell qty -->
+        <template #cell-name="{ row }">
+          <div class="d-flex align-items-center">
+            <span class="avatar avatar-sm bg-blue-lt me-2 rounded-circle">
+              {{ (row.name || 'U').charAt(0).toUpperCase() }}
+            </span>
+            <div>
+              <div class="fw-bold">{{ row.name }}</div>
+              <div class="text-muted small">@{{ row.username }}</div>
+            </div>
+          </div>
+        </template>
+
+        <template #cell-email="{ row }">
+          <div>
+            <div>{{ row.email }}</div>
+            <div v-if="row.phone" class="text-muted small">
+              <Icon name="i-tabler:phone" class="icon icon-sm me-1" />
+              {{ row.phone }}
+            </div>
+          </div>
+        </template>
+
         <template #cell-role="{ value }">
           <span
             v-if="value"
@@ -77,7 +106,18 @@ const options = {
           >
             {{ value }}
           </span>
+          <span v-else class="text-muted small">-</span>
         </template>
+
+        <template #cell-is_active="{ value }">
+          <span v-if="value === false" class="badge bg-danger-lt">
+            Nonaktif
+          </span>
+          <span v-else class="badge bg-success-lt">
+            Aktif
+          </span>
+        </template>
+
         <template #cell-updated_at="{ value }">
           {{ formatDate(value as string) }}
         </template>
@@ -93,16 +133,15 @@ const options = {
           </NuxtLink>
           <a
             href="#"
-            class="btn btn-sm py-1 px-2 rounded-1 text-nowrap"
+            class="btn btn-sm py-1 px-2 rounded-1 text-nowrap text-danger"
             @click.prevent="openConfirmDelete(row.id, deleteItem)"
           >
             <Icon name="i-tabler:trash" class="icon icon-2" />
-            Delete
+            Hapus
           </a>
         </template>
       </DataTable3>
     </PageBody>
-    <!-- <ui-prompt ref="promptElx" /> -->
     <ui-confirm-delete-modal />
   </div>
 </template>

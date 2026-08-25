@@ -25,7 +25,7 @@ const dataForm = ref({
 });
 
 if (id.value !== "new") {
-  const { data: resp, error } = await useApiFetch<PriceListResponse>(`/price-lists/${id.value}`);
+  const { data: resp, error } = await useApiFetch<PriceListResponse>(`/catalog/price-lists/${id.value}`);
   if (error.value || !resp.value) {
     setFlash("Data price list tidak ditemukan", "error");
     navigateTo("/price-list");
@@ -42,7 +42,7 @@ if (id.value !== "new") {
 const form = ref<HTMLFormElement>();
 const { loading, success, errors, submitForm } = useForm2();
 
-const { url: submitUrl, method: submitMethod } = useResource("price-lists", id);
+const { url: submitUrl, method: submitMethod } = useResource("catalog/price-lists", id);
 
 const onSubmit = async () => {
   const payload = {

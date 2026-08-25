@@ -12,7 +12,7 @@
     "permission": "about"
   },
   {
-    "title": "Master",
+    "title": "Master Data",
     "icon": "tabler:box",
     "permission": "",
     "childs": [
@@ -20,6 +20,16 @@
         "title": "Produk",
         "to": "/product",
         "permission": "produk:view"
+      },
+      {
+        "title": "Brand",
+        "to": "/brand",
+        "permission": "brand:view"
+      },
+      {
+        "title": "Komposisi / BOM",
+        "to": "/product-composition",
+        "permission": "product-composition:view"
       },
       {
         "title": "Kategori",
@@ -67,11 +77,78 @@
         "title": "Penerimaan Barang (GR)",
         "to": "/goods-receipt",
         "permission": "goods-receipts:view"
+      },
+      {
+        "title": "Faktur Pembelian (Invoice)",
+        "to": "/purchase-invoice",
+        "permission": "purchasing.pi.view"
+      },
+      {
+        "title": "Pembayaran Hutang",
+        "to": "/purchase-payment",
+        "permission": "purchasing.payments.view"
+      },
+      {
+        "title": "Retur Pembelian",
+        "to": "/purchase-return",
+        "permission": "purchasing.returns.view"
+      },
+      {
+        "title": "Belanja Fresh (Pasar / Petani)",
+        "to": "/fresh-market-plan",
+        "permission": "purchasing.plans.read"
       }
     ]
   },
   {
-    "title": "Finance",
+    "title": "Inventori & Gudang",
+    "icon": "tabler:building-warehouse",
+    "permission": "",
+    "childs": [
+      {
+        "title": "Transfer Stok",
+        "to": "/stock-transfer",
+        "permission": "inventory.stock_transfers.view"
+      },
+      {
+        "title": "Rencana Transfer",
+        "to": "/stock-transfer/planning",
+        "permission": "inventory.stock_transfer_plans.view"
+      },
+      {
+        "title": "Penyesuaian Stok",
+        "to": "/stock-adjustment",
+        "permission": "inventory.adjustments.read"
+      },
+      {
+        "title": "Stock Opname",
+        "to": "/stock-opname",
+        "permission": "inventory.opnames.read"
+      },
+      {
+        "title": "Pemusnahan Stok",
+        "to": "/stock-disposal",
+        "permission": "inventory.disposals.read"
+      },
+      {
+        "title": "Batch Produksi / Olahan",
+        "to": "/production-batch",
+        "permission": "inventory.production_batches.view"
+      },
+      {
+        "title": "Rencana Produksi",
+        "to": "/production-plan",
+        "permission": "inventory.production_plans.view"
+      },
+      {
+        "title": "Work Center (Dapur)",
+        "to": "/work-center",
+        "permission": "inventory.work_centers.view"
+      }
+    ]
+  },
+  {
+    "title": "Finance & Akuntansi",
     "icon": "tabler:currency-dollar",
     "permission": "",
     "childs": [
@@ -79,6 +156,21 @@
         "title": "Chart of Accounts",
         "to": "/account",
         "permission": "account:view"
+      },
+      {
+        "title": "Jurnal Umum",
+        "to": "/journal-entry",
+        "permission": "finance.journals.read"
+      },
+      {
+        "title": "Metode Pembayaran",
+        "to": "/payment-method",
+        "permission": "finance.payment-methods.read"
+      },
+      {
+        "title": "Account Mapping",
+        "to": "/account-mapping",
+        "permission": "finance.account-mappings.read"
       },
       {
         "title": "Price Lists",
@@ -93,6 +185,23 @@
     ]
   },
   {
+    "title": "Penjualan & Member",
+    "icon": "tabler:receipt-2",
+    "permission": "",
+    "childs": [
+      {
+        "title": "Pelanggan & Member",
+        "to": "/customer",
+        "permission": ""
+      },
+      {
+        "title": "Promosi & Diskon",
+        "to": "/promotion",
+        "permission": ""
+      }
+    ]
+  },
+  {
     "title": "User",
     "icon": "tabler:users",
     "to": "/user",
@@ -100,7 +209,7 @@
   },
   {
     "title": "Toko",
-    "icon": "tabler:building-warehouse",
+    "icon": "tabler:building-store",
     "to": "/toko",
     "permission": "toko:view"
   },
@@ -132,13 +241,33 @@
         "permission": "master-data:view"
       },
       {
+        "title": "Kategori",
+        "to": "/usulan/category",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Satuan / UOM",
+        "to": "/usulan/uom",
+        "permission": "master-data:view"
+      },
+      {
         "title": "Supplier",
         "to": "/usulan/supplier",
         "permission": "master-data:view"
       },
       {
+        "title": "Brand",
+        "to": "/usulan/brand",
+        "permission": "master-data:view"
+      },
+      {
         "title": "Produk",
         "to": "/usulan/product",
+        "permission": "master-data:view"
+      },
+      {
+        "title": "Komposisi Produk",
+        "to": "/usulan/product-composition",
         "permission": "master-data:view"
       },
       {

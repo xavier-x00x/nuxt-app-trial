@@ -132,7 +132,6 @@ const resolveText = (elem: JrxmlElement, rowData: any, index: number) => {
           paddingRight: `${parsedReport.rightMargin * scale}px`
         }"
       >
-        
         <!-- 1. Title Band -->
         <div 
           v-if="parsedReport.title" 

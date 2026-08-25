@@ -3,5 +3,5 @@ const title = "Usulan Pajak";
 useHead({ title });
 </script>
 <template>
-  <UsulanList entityType="TAX" :title="title" icon="i-tabler:receipt-tax" basePath="/usulan/tax" />
+  <UsulanList entity-type="TAX" :title="title" icon="i-tabler:receipt-tax" base-path="/usulan/tax" />
 </template>

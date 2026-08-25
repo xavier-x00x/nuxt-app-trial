@@ -41,7 +41,7 @@ function buildGRRows(g: GoodsReceiptDetail): Record<string, unknown>[] {
 onMounted(async () => {
   loading.value = true
   try {
-    const res = await useApi<{ data: GoodsReceiptDetail }>(`/goods-receipts/${id}`)
+    const res = await useApi<{ data: GoodsReceiptDetail }>(`/purchasing/goods-receipts/${id}`)
     if (res.data?.data) {
       gr.value = res.data.data
       title.value = `Cetak GR #${gr.value.gr_number}`

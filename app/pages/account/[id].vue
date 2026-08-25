@@ -34,7 +34,7 @@ const accountTypes = [
 ];
 
 if (id.value !== "new") {
-  const { data: resp, error } = await useApiFetch<AccountResponse>(`/accounts/${id.value}`);
+  const { data: resp, error } = await useApiFetch<AccountResponse>(`/finance/accounts/${id.value}`);
   if (error.value || !resp.value) {
     setFlash("Data account tidak ditemukan", "error");
     navigateTo("/account");
@@ -46,7 +46,7 @@ if (id.value !== "new") {
 const form = ref<HTMLFormElement>();
 const { loading, success, errors, submitForm } = useForm2();
 
-const { url: submitUrl, method: submitMethod } = useResource("accounts", id);
+const { url: submitUrl, method: submitMethod } = useResource("finance/accounts", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {

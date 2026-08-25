@@ -1,5 +1,6 @@
-
 <script setup lang="ts">
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
+
 const { setFlash } = useFlash();
 
 interface Props {
@@ -19,78 +20,35 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const isEdit = computed(() => !!props.id);
-
-const actionTypes = [
-  { value: "CREATE", label: "Create" },
-  { value: "UPDATE", label: "Update" },
-  { value: "DELETE", label: "Delete" },
-];
-
-const proposalType = ref("CREATE");
 const reason = ref("");
-const items = ref<Record<string, any>[]>([{}]);
 
-const entityFields = [
+const items = ref<Record<string, any>[]>([
   {
-    "key": "product_id",
-    "label": "Product",
-    "type": "selectx",
-    "apiUrl": "/products/pagination",
-    "required": true,
-    "col": "col-md-6"
-  },
-  {
-    "key": "supplier_id",
-    "label": "Supplier",
-    "type": "selectx",
-    "apiUrl": "/suppliers/pagination",
-    "required": true,
-    "col": "col-md-6"
-  },
-  {
-    "key": "supplier_sku",
-    "label": "Supplier SKU",
-    "type": "text",
-    "col": "col-md-6"
-  },
-  {
-    "key": "default_lead_time_days",
-    "label": "Lead Time (days)",
-    "type": "number",
-    "col": "col-md-6"
-  },
-  {
-    "key": "offered_price",
-    "label": "Offered Price",
-    "type": "number",
-    "col": "col-md-6"
-  },
-  {
-    "key": "min_order_qty",
-    "label": "Min Order Qty",
-    "type": "number",
-    "col": "col-md-6"
-  },
-  {
-    "key": "is_primary",
-    "label": "Is Primary",
-    "type": "switch",
-    "col": "col-md-4"
-  },
-  {
-    "key": "is_consignment",
-    "label": "Is Consignment",
-    "type": "switch",
-    "col": "col-md-4"
-  },
-  {
-    "key": "is_returnable",
-    "label": "Is Returnable",
-    "type": "switch",
-    "col": "col-md-4"
+    product_id: null,
+    product_id_text: "",
+    product_id_obj: null,
+    supplier_id: null,
+    supplier_id_text: "",
+    supplier_id_obj: null,
+    supplier_sku: "",
+    default_lead_time_days: 0,
+    purchase_uom_id: null,
+    offered_price: 0,
+    min_order_qty: 0,
+    is_primary: false,
+    is_consignment: false,
+    is_returnable: false,
+    _action: 'CREATE',
+    _existing_id: null,
+    _loading: false,
+    _context_loaded: false,
+    _is_initial: false,
+    _last_product_id: null,
+    _last_supplier_id: null,
+    _product_detail: null,
+    _valid_uoms: [],
   }
-];
-const fieldsKeys = ["product_id", "supplier_id", "supplier_sku", "default_lead_time_days", "purchase_uom_id", "offered_price", "min_order_qty", "is_primary", "is_consignment", "is_returnable"];
+]);
 
 const parsePayload = (payload: any) => {
   if (!payload) return {};
@@ -155,150 +113,183 @@ const resolveRelationText = async (item: Record<string, any>, fieldKey: string, 
   } catch {}
 };
 
-const resolveEntityText = async (item: Record<string, any>) => {
-  const apiUrl = "/product-suppliers/pagination";
-  if (!apiUrl || !item.entity_id) return;
-  const detailUrl = apiUrl.replace('/pagination', '') + '/' + item.entity_id;
-  try {
-    const { data } = await useApi<any>(detailUrl);
-    if (data?.data) {
-      item.entity_text = formatEntityText("PRODUCT_SUPPLIER", data.data);
-      item._selected_obj = data.data;
-    }
-  } catch {}
-};
-
 watch(
-  () => items.value,
+  items,
   (newItems) => {
-    newItems.forEach((item: any) => {
-      if (item._selected_obj && item._selected_obj.id !== item._last_selected_id) {
-        item.entity_id = item._selected_obj.id;
-        item.entity_text = formatEntityText("PRODUCT_SUPPLIER", item._selected_obj);
-        item._last_selected_id = item._selected_obj.id;
-        
-        for (const field of entityFields) {
-          item[field.key] = item._selected_obj[field.key] !== undefined ? item._selected_obj[field.key] : null;
-          
-          if (field.type === 'selectx') {
-            const relKey = field.key.replace(/_id$/, '');
-            if (item._selected_obj[relKey] && typeof item._selected_obj[relKey] === 'object') {
-              item[field.key + '_text'] = formatEntityText(field.key, item._selected_obj[relKey]);
-            } else if (item._selected_obj[field.key + '_name']) {
-              item[field.key + '_text'] = item._selected_obj[field.key + '_name'];
-            } else if (item._selected_obj[field.key + '_text']) {
-              item[field.key + '_text'] = item._selected_obj[field.key + '_text'];
-            } else if (item[field.key]) {
-              resolveRelationText(item, field.key, field.apiUrl!);
-            }
-          }
-        }
-      } else if (!item._selected_obj && !item.entity_id && item._last_selected_id) {
-        item.entity_id = null;
-        item.entity_text = "";
-        item._last_selected_id = null;
-        for (const field of entityFields) {
-          item[field.key] = null;
-          if (field.type === 'selectx') {
-            item[field.key + '_text'] = "";
-          }
-        }
-      }
+    newItems.forEach(async (item: any) => {
+      const pid = item.product_id;
+      const sid = item.supplier_id;
 
-      if (item.product_id && item.product_id !== item._last_product_id) {
-        item._last_product_id = item.product_id;
-        fetchUOMConversions(item);
+      if (pid && sid) {
+        if (pid !== item._last_product_id || sid !== item._last_supplier_id) {
+          item._last_product_id = pid;
+          item._last_supplier_id = sid;
+          
+          item._loading = true;
+          item._context_loaded = false;
+
+          try {
+            const [productRes, suppliersRes, uomConvRes] = await Promise.all([
+              useApi<any>(`/catalog/products/${pid}`),
+              useApi<any>(`/catalog/products/${pid}/suppliers`),
+              useApi<any>(`/catalog/product-uoms/product/${pid}`)
+            ]);
+
+            const productData = productRes.data?.data;
+            const uomConversions = uomConvRes.data?.data || [];
+            item._product_detail = productData;
+            
+            const validUoms: any[] = [];
+            if (productData?.base_uom_id) {
+              validUoms.push({
+                id: productData.base_uom_id,
+                name: productData.uom_name || "Base UOM"
+              });
+            }
+            if (uomConversions.length > 0) {
+              uomConversions.forEach((conv: any) => {
+                if (conv.uom && !validUoms.find((u: any) => u.id === conv.uom.id)) {
+                  validUoms.push(conv.uom);
+                }
+              });
+            }
+            item._valid_uoms = validUoms;
+
+            const suppliers = suppliersRes.data?.data || [];
+            const existing = suppliers.find((s: any) => s.supplier_id === sid);
+
+            if (existing) {
+              item._action = 'UPDATE';
+              item._existing_id = existing.id;
+              if (!item._is_initial) {
+                item.supplier_sku = existing.supplier_sku || "";
+                item.default_lead_time_days = existing.default_lead_time_days || 0;
+                item.purchase_uom_id = existing.purchase_uom_id || null;
+                item.offered_price = existing.offered_price || 0;
+                item.min_order_qty = existing.min_order_qty || 0;
+                item.is_primary = existing.is_primary || false;
+                item.is_consignment = existing.is_consignment || false;
+                item.is_returnable = existing.is_returnable || false;
+              }
+            } else {
+              item._action = 'CREATE';
+              item._existing_id = null;
+              if (!item._is_initial) {
+                item.supplier_sku = "";
+                item.default_lead_time_days = 0;
+                item.purchase_uom_id = productData?.base_uom_id || null;
+                item.offered_price = 0;
+                item.min_order_qty = 0;
+                item.is_primary = false;
+                item.is_consignment = false;
+                item.is_returnable = false;
+              }
+            }
+
+            item._is_initial = false;
+            item._context_loaded = true;
+          } catch (err) {
+            console.error(err);
+          } finally {
+            item._loading = false;
+          }
+        }
+      } else {
+        if (!pid || !sid) {
+          item._last_product_id = pid;
+          item._last_supplier_id = sid;
+          item._context_loaded = false;
+          item._action = 'CREATE';
+          item._existing_id = null;
+        }
       }
     });
   },
   { deep: true }
 );
 
-const fetchUOMConversions = async (item: any) => {
-  item.loading_uom = true;
-  try {
-    const { data } = await useApi<any>(`/product-uoms/product/${item.product_id}`);
-    if (data?.data) {
-      item.product_uom_conversions = data.data;
-    } else {
-      item.product_uom_conversions = [];
-    }
-  } catch {
-    item.product_uom_conversions = [];
-  } finally {
-    item.loading_uom = false;
-  }
-};
-
-watch(proposalType, (newVal, oldVal) => {
-  if (newVal !== oldVal && !isEdit.value) {
-    items.value = [{}];
-  }
-});
-
-if (props.proposal) {
-  fillForm(props.proposal);
-}
-
 function fillForm(proposal: any) {
-  proposalType.value = proposal.action_type;
   reason.value = proposal.reason || "";
   
   items.value = proposal.items.map((item: any) => {
-    const base: Record<string, any> = { _item_id: item.id, entity_id: item.entity_id || null };
     const parsedPayload = parsePayload(item.payload_json);
-    
-    if (proposal.action_type === "CREATE" || proposal.action_type === "UPDATE" || proposal.action_type === "DELETE") {
-      const snapshot = parsePayload(item.snapshot_json);
-      const displayVal = snapshot && Object.keys(snapshot).length ? formatEntityText("PRODUCT_SUPPLIER", snapshot) : (item.entity_id || "");
-      const merged = { 
-        ...base, ...parsedPayload, entity_text: displayVal,
-        _selected_obj: snapshot && Object.keys(snapshot).length ? snapshot : null,
-        _last_selected_id: item.entity_id,
-        _last_product_id: parsedPayload.product_id
-      };
 
-      if (proposal.action_type !== "DELETE") {
-        for (const field of entityFields) {
-          if (field.type === 'selectx') {
-            const textKey = field.key + '_text';
-            if (merged[field.key] && !merged[textKey] && snapshot && Object.keys(snapshot).length) {
-              const relKey = field.key.replace(/_id$/, '');
-              if (snapshot[relKey] && typeof snapshot[relKey] === 'object') {
-                merged[textKey] = formatEntityText(field.key, snapshot[relKey]);
-              } else if (snapshot[field.key + '_name']) {
-                merged[textKey] = snapshot[field.key + '_name'];
-              } else if (snapshot[textKey]) {
-                merged[textKey] = snapshot[textKey];
-              }
-            }
-          }
-        }
-      }
-      return merged;
-    }
-    return base;
+    return {
+      _item_id: item.id,
+      _existing_id: item.entity_id || null,
+      _action: proposal.action_type || 'CREATE',
+
+      product_id: parsedPayload.product_id || null,
+      product_id_text: parsedPayload.product_id_text || "",
+
+      supplier_id: parsedPayload.supplier_id || null,
+      supplier_id_text: parsedPayload.supplier_id_text || "",
+
+      supplier_sku: parsedPayload.supplier_sku || "",
+      default_lead_time_days: parsedPayload.default_lead_time_days || 0,
+      purchase_uom_id: parsedPayload.purchase_uom_id || null,
+      offered_price: parsedPayload.offered_price || 0,
+      min_order_qty: parsedPayload.min_order_qty || 0,
+      is_primary: parsedPayload.is_primary || false,
+      is_consignment: parsedPayload.is_consignment || false,
+      is_returnable: parsedPayload.is_returnable || false,
+
+      _is_initial: true,
+      _context_loaded: false,
+      _loading: false,
+      _last_product_id: null,
+      _last_supplier_id: null,
+      _product_detail: null,
+      _valid_uoms: [],
+    };
   });
 
   items.value.forEach((item: any) => {
-    if (proposal.action_type === "CREATE" || proposal.action_type === "UPDATE") {
-      if (item.entity_id && !item._selected_obj) resolveEntityText(item);
-      for (const field of entityFields) {
-        if (field.type === 'selectx') {
-          const textKey = field.key + '_text';
-          if (item[field.key] && !item[textKey]) {
-            resolveRelationText(item, field.key, field.apiUrl!);
-          }
-        }
-      }
-    } else if (proposal.action_type === "DELETE") {
-      if (item.entity_id && !item._selected_obj) resolveEntityText(item);
+    if (item.product_id && !item.product_id_text) {
+      resolveRelationText(item, 'product_id', '/products/pagination');
+    }
+    if (item.supplier_id && !item.supplier_id_text) {
+      resolveRelationText(item, 'supplier_id', '/suppliers/pagination');
     }
   });
 }
 
+watch(
+  () => props.proposal,
+  (newVal) => {
+    if (newVal) {
+      fillForm(newVal);
+    }
+  },
+  { immediate: true }
+);
+
 const addItem = () => {
-  items.value.push({});
+  items.value.push({
+    product_id: null,
+    product_id_text: "",
+    product_id_obj: null,
+    supplier_id: globalSupplierId.value || null,
+    supplier_id_text: globalSupplierIdText.value || "",
+    supplier_id_obj: globalSupplierIdObj.value || null,
+    supplier_sku: "",
+    default_lead_time_days: 0,
+    purchase_uom_id: null,
+    offered_price: 0,
+    min_order_qty: 0,
+    is_primary: false,
+    is_consignment: false,
+    is_returnable: false,
+    _action: 'CREATE',
+    _existing_id: null,
+    _loading: false,
+    _context_loaded: false,
+    _is_initial: false,
+    _last_product_id: null,
+    _last_supplier_id: null,
+    _product_detail: null,
+    _valid_uoms: [],
+  });
 };
 
 const removeItem = (idx: number) => {
@@ -311,37 +302,46 @@ const { loading, success, errors, formatError, submitForm } = useForm2();
 const onSubmit = async () => {
   const dataPayload: Record<string, any> = {
     entity_type: "PRODUCT_SUPPLIER",
-    action_type: proposalType.value,
+    action_type: items.value.every((i: any) => i._action === 'CREATE') ? 'CREATE' : 'UPDATE',
     reason: reason.value || undefined,
     items: items.value.map((item: any) => {
-      let payload: any;
-      if (proposalType.value === "CREATE" || proposalType.value === "UPDATE") {
-        payload = {};
-        for (const key of fieldsKeys) {
-          if (key === 'supplier_id') {
-            payload.supplier_id = items.value[0]?.supplier_id;
-            payload.supplier_id_text = items.value[0]?.supplier_id_text;
-            continue;
-          }
-          if (item[key] !== undefined) payload[key] = item[key];
-          if (item[key+'_text'] !== undefined) payload[key+'_text'] = item[key+'_text'];
-        }
-      } else {
-        payload = {};
+      const payload: Record<string, any> = {
+        supplier_id: item.supplier_id,
+        product_id: item.product_id,
+        supplier_sku: item.supplier_sku,
+        default_lead_time_days: Number(item.default_lead_time_days) || 0,
+        purchase_uom_id: item.purchase_uom_id || null,
+        offered_price: Number(item.offered_price) || 0,
+        min_order_qty: Number(item.min_order_qty) || 0,
+        is_primary: !!item.is_primary,
+        is_consignment: !!item.is_consignment,
+        is_returnable: !!item.is_returnable,
+      };
+
+      if (item.supplier_id_text) payload.supplier_id_text = item.supplier_id_text;
+      if (item.product_id_text) payload.product_id_text = item.product_id_text;
+      
+      const uom = item._valid_uoms?.find((u: any) => u.id === item.purchase_uom_id);
+      if (uom) {
+        payload.purchase_uom_id_text = uom.name;
       }
+
       const result: Record<string, any> = {
-        entity_id: item.entity_id || null,
+        entity_id: item._action === 'UPDATE' ? (item._existing_id || null) : null,
         payload_json: JSON.stringify(payload),
       };
-      if (isEdit.value && item._item_id) result.id = item._item_id;
+
+      if (isEdit.value && item._item_id) {
+        result.id = item._item_id;
+      }
       return result;
     }),
   };
 
   if (isEdit.value) {
-    await submitForm(`/master-data/${props.id}`, { method: "PUT", body: dataPayload });
+    await submitForm(`/system/proposals/${props.id}`, { method: "PUT", body: dataPayload });
   } else {
-    await submitForm("/master-data", { method: "POST", body: dataPayload });
+    await submitForm("/system/proposals", { method: "POST", body: dataPayload });
   }
   if (success.value) navigateTo(props.basePath);
 };
@@ -356,34 +356,37 @@ const onSubmit = async () => {
     <PageBody>
       <form ref="formEl" autocomplete="off" novalidate @submit.prevent="onSubmit">
         <div class="row justify-content-center">
-          <div class="col-xl-8 col-md-8 col-sm-12">
-            <div class="mb-3">
-              <label class="form-label">Action <span class="text-danger">*</span></label>
-              <select v-model="proposalType" class="form-select rounded-1" :disabled="isEdit">
-                <option v-for="at in actionTypes" :key="at.value" :value="at.value">{{ at.label }}</option>
-              </select>
-            </div>
-
-            <ui-textarea v-model="reason" label="Reason" placeholder="Optional reason for this proposal" :error="formatError('Reason', 'reason')" />
-
-            <hr class="my-3" />
-            
-            <div v-if="(proposalType === 'CREATE' || proposalType === 'UPDATE') && items.length > 0" class="mb-4 p-3 border rounded-1 bg-body-secondary">
-              <label class="form-label fw-bold mb-2">Supplier Utama untuk Usulan Ini <span class="text-danger">*</span></label>
-              <UiSelectSearch5
-                v-model="globalSupplierId"
-                v-model:display-value="globalSupplierIdText"
-                v-model:selected-data="globalSupplierIdObj"
-                value-key="id"
-                api-url="/suppliers/pagination"
-                xname="global_supplier_id"
-                placeholder="Pilih Supplier..."
-                :clearable="true"
-                :selected-format="(e) => formatEntityText('supplier_id', e)"
-                :select-format="(e) => formatEntityText('supplier_id', e)"
-              />
-              <div class="form-text mt-2 mb-0">
-                <Icon name="i-tabler:info-circle" /> Supplier yang dipilih di sini akan diterapkan secara otomatis untuk seluruh baris item di bawah.
+          <div class="col-xl-12 col-md-12 col-sm-12">
+            <div class="row align-items-stretch mb-4">
+              <div class="col-md-6">
+                <div v-if="items.length > 0" class="p-3 border rounded-1 bg-body-secondary h-100">
+                  <label class="form-label fw-bold mb-2">Supplier Utama untuk Usulan Ini <span class="text-danger">*</span></label>
+                  <UiSelectSearch5
+                    v-model="globalSupplierId"
+                    v-model:display-value="globalSupplierIdText"
+                    v-model:selected-data="globalSupplierIdObj"
+                    value-key="id"
+                    api-url="/purchasing/suppliers/pagination"
+                    xname="global_supplier_id"
+                    placeholder="Pilih Supplier..."
+                    :clearable="true"
+                    :selected-format="(e) => formatEntityText('supplier_id', e)"
+                    :select-format="(e) => formatEntityText('supplier_id', e)"
+                    :error="formatError('Supplier Utama', 'supplier_id')"
+                  />
+                  <div class="form-text mt-2 mb-0">
+                    <Icon name="i-tabler:info-circle" /> Memilih Supplier di sini akan menerapkannya ke semua item di bawah secara otomatis.
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6 d-flex flex-column">
+                <ui-textarea
+                  v-model="reason"
+                  class="flex-grow-1"
+                  label="Reason"
+                  placeholder="Optional reason for this proposal"
+                  :error="formatError('Reason', 'reason')"
+                />
               </div>
             </div>
 
@@ -391,73 +394,60 @@ const onSubmit = async () => {
 
             <div v-for="(item, idx) in items" :key="idx" class="border rounded-1 p-3 mb-3 position-relative bg-body shadow-sm">
               <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                <span class="fw-bold text-primary small text-uppercase">Item #{{ idx + 1 }}</span>
+                <div>
+                  <span class="fw-bold text-primary small text-uppercase me-2">Item #{{ idx + 1 }}</span>
+                  <template v-if="item._context_loaded">
+                    <span v-if="item._action === 'CREATE'" class="badge bg-success px-1" style="font-size: 0.65rem">NEW</span>
+                    <span v-else-if="item._action === 'UPDATE'" class="badge bg-warning text-dark px-1" style="font-size: 0.65rem">UPD</span>
+                  </template>
+                </div>
                 <button v-if="items.length > 1" type="button" class="btn btn-sm btn-link text-danger p-0 border-0 text-decoration-none d-flex align-items-center" @click="removeItem(idx)">
                   <Icon name="i-tabler:trash" class="icon me-1" style="font-size: 1.1rem;" /> Hapus
                 </button>
               </div>
 
-              <!-- UPDATE/DELETE Mode Search -->
-              <div v-if="proposalType === 'UPDATE' || proposalType === 'DELETE'" class="mb-4">
-                <label class="form-label">Cari Data <span class="text-danger">*</span></label>
-                <UiSelectSearch5
-                  v-model="item.entity_id"
-                  v-model:display-value="item.entity_text"
-                  v-model:selected-data="item._selected_obj"
-                  value-key="id"
-                  api-url="/product-suppliers/pagination"
-                  xname="entity_id"
-                  placeholder="Ketik untuk mencari..."
-                  :clearable="true"
-                  :selected-format="(e) => formatEntityText('PRODUCT_SUPPLIER', e)"
-                  :select-format="(e) => formatEntityText('PRODUCT_SUPPLIER', e)"
-                />
-                
-                <div v-if="proposalType === 'DELETE' && item._selected_obj" class="mt-3 p-3 bg-body-secondary rounded-1 border">
-                  <div class="fw-semibold mb-2 small text-uppercase text-muted">Ringkasan Data yang Akan Dihapus:</div>
-                  <div class="row g-2 small">
-                    <template v-for="field in entityFields.filter(f => f.type !== 'switch' && f.type !== 'textarea').slice(0, 4)" :key="field.key">
-                      <div class="col-6">
-                        <strong>{{ field.label }}:</strong> {{ item._selected_obj[field.key] !== undefined && item._selected_obj[field.key] !== null ? item._selected_obj[field.key] : '-' }}
-                      </div>
-                    </template>
-                  </div>
+              <div class="row g-3">
+                <div class="col-md-9">
+                  <label class="form-label">Product <span class="text-danger">*</span></label>
+                  <UiSelectSearch5
+                    v-model="item.product_id"
+                    v-model:display-value="item.product_id_text"
+                    v-model:selected-data="item.product_id_obj"
+                    value-key="id"
+                    api-url="/catalog/products/pagination"
+                    xname="product_id"
+                    placeholder="Select Product"
+                    :clearable="true"
+                    :selected-format="(e) => formatEntityText('product_id', e)"
+                    :select-format="(e) => formatEntityText('product_id', e)"
+                    :error="formatError(`Product ${idx + 1}`, `items[${idx}].product_id`)"
+                  />
                 </div>
-              </div>
+                
+                <div class="col-md-3">
+                  <label class="form-label">Satuan Order</label>
+                  <select
+                    v-if="item._valid_uoms && item._valid_uoms.length > 0" 
+                    v-model="item.purchase_uom_id" 
+                    class="form-select" 
+                    :class="{ 'is-invalid': formatError(`UOM ${idx + 1}`, `items[${idx}].purchase_uom_id`) }"
+                  >
+                    <option v-for="opt in item._valid_uoms" :key="opt.id" :value="opt.id">
+                      {{ opt.name }}
+                    </option>
+                  </select>
+                  <select v-else class="form-select" disabled>
+                    <option>Pilih Product</option>
+                  </select>
+                </div>
 
-              <!-- CREATE & UPDATE Dynamic Fields -->
-              <template v-if="proposalType === 'CREATE' || (proposalType === 'UPDATE' && item.entity_id)">
-                <div class="row g-3">
-
-                  <div class="col-md-9">
-                    <label class="form-label">Product <span class="text-danger">*</span></label>
-                    <UiSelectSearch5
-                      v-model="item.product_id"
-                      v-model:display-value="item.product_id_text"
-                      v-model:selected-data="item.product_id_obj"
-                      value-key="id"
-                      api-url="/products/pagination"
-                      xname="product_id"
-                      placeholder="Select Product"
-                      :clearable="true"
-                      :selected-format="(e) => formatEntityText('product_id', e)"
-                      :select-format="(e) => formatEntityText('product_id', e)"
-                    />
+                <template v-if="item._loading">
+                  <div class="col-12 py-3 text-center text-muted">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span> Loading details...
                   </div>
-                  
-                  <div class="col-md-3">
-                    <label class="form-label">Satuan Order</label>
-                    <select v-model="item.purchase_uom_id" class="form-select" :disabled="!item.product_id">
-                      <option :value="undefined">{{ item.product_id_obj?.base_uom?.name || 'Base UOM' }} (Default)</option>
-                      <option v-for="conv in item.product_uom_conversions || []" :key="conv.id" :value="conv.uom_id">
-                        {{ conv.uom?.name }} (1 = {{ conv.conversion_rate }})
-                      </option>
-                    </select>
-                    <div v-if="item.loading_uom" class="form-text text-muted small mt-1">
-                      <span class="spinner-border spinner-border-sm me-1" role="status"></span> Memuat...
-                    </div>
-                  </div>
+                </template>
 
+                <template v-else>
                   <div class="col-md-3">
                     <ui-input2 v-model="item.supplier_sku" label="Supplier SKU" type="text" placeholder="SKU" />
                   </div>
@@ -465,7 +455,7 @@ const onSubmit = async () => {
                     <ui-input2 v-model="item.default_lead_time_days" label="Lead Time (hari)" type="number" placeholder="Hari" />
                   </div>
                   <div class="col-md-3">
-                    <ui-input2 v-model="item.offered_price" label="Harga (Offered)" type="number" placeholder="Harga" />
+                    <ui-input2 v-model="item.offered_price" label="Harga Beli (Offered)" type="number" placeholder="Harga" />
                   </div>
                   <div class="col-md-3">
                     <ui-input2 v-model="item.min_order_qty" label="Min Order (MOQ)" type="number" placeholder="MOQ" />
@@ -485,11 +475,11 @@ const onSubmit = async () => {
                       <label class="form-check-label" :for="`field-${idx}-is_returnable`">Bisa Diretur (Returnable)</label>
                     </div>
                   </div>
-                </div>
-              </template>
+                </template>
+              </div>
             </div>
 
-            <button v-if="proposalType === 'CREATE' || proposalType === 'UPDATE'" type="button" class="btn btn-outline-primary w-100 py-2 d-flex align-items-center justify-content-center rounded-1 mt-2 mb-5" style="border-style: dashed; border-width: 2px;" @click="addItem">
+            <button type="button" class="btn btn-outline-primary w-100 py-2 d-flex align-items-center justify-content-center rounded-1 mt-2 mb-5" style="border-style: dashed; border-width: 2px;" @click="addItem">
               <Icon name="i-tabler:plus" class="me-1" style="font-size: 1.15rem;" /> Tambah Item Lainnya
             </button>
           </div>

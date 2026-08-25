@@ -19,8 +19,8 @@ const loadMoreTrigger = ref<HTMLElement | null>(null);
 
 const loadStoresAndWarehouses = async () => {
   const [storeRes, whRes] = await Promise.all([
-    useApi<{ data: any[] }>("/stores"),
-    useApi<{ data: any[] }>("/warehouses"),
+    useApi<{ data: any[] }>("/inventory/stores"),
+    useApi<{ data: any[] }>("/inventory/warehouses"),
   ]);
   if (storeRes.data?.data) {
     stores.value = storeRes.data.data;
@@ -181,7 +181,7 @@ const openGeneratePOModal = () => {
 const handleBulkGeneratePO = async () => {
   showGeneratePOModal.value = false;
 
-  const res = await submitForm("/purchase-orders/bulk-from-approved", {
+  const res = await submitForm("/purchasing/purchase-orders/bulk-from-approved", {
     method: "POST",
     body: {
       store_id: selectedStoreId.value,
@@ -207,7 +207,7 @@ const openSupplierModal = async (p: PurchaseOrderPlanning) => {
   loadingSuppliers.value = true;
   availableSuppliers.value = [];
   
-  const res = await useApi<{ data: any[] }>(`/products/${p.product_id}/suppliers`);
+  const res = await useApi<{ data: any[] }>(`/catalog/products/${p.product_id}/suppliers`);
   if (res.data?.data) {
     availableSuppliers.value = res.data.data;
   }
@@ -444,7 +444,7 @@ const updatePlanningInline = async (p: PurchaseOrderPlanning, productSupplierId?
     <div class="modal modal-blur fade" :class="{ show: showGeneratePOModal }" :style="{ display: showGeneratePOModal ? 'block' : 'none' }" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
         <div class="modal-content">
-          <button type="button" class="btn-close" @click="showGeneratePOModal = false" aria-label="Close"></button>
+          <button type="button" class="btn-close" aria-label="Close" @click="showGeneratePOModal = false"></button>
           <div class="modal-status bg-success"></div>
           <div class="modal-body text-center py-4">
             <Icon name="i-tabler:alert-triangle" class="icon mb-2 text-green icon-lg" style="font-size: 3rem;" />
@@ -457,7 +457,7 @@ const updatePlanningInline = async (p: PurchaseOrderPlanning, productSupplierId?
             <div class="w-100">
               <div class="row">
                 <div class="col"><button type="button" class="btn w-100" @click="showGeneratePOModal = false">Batal</button></div>
-                <div class="col"><button type="button" class="btn btn-success w-100" @click="handleBulkGeneratePO" :disabled="submitting">Generate PO</button></div>
+                <div class="col"><button type="button" class="btn btn-success w-100" :disabled="submitting" @click="handleBulkGeneratePO">Generate PO</button></div>
               </div>
             </div>
           </div>

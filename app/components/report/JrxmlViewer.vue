@@ -1,5 +1,6 @@
+<!-- eslint-disable vue/no-mutating-props -->
 <template>
-  <div class="jrxml-viewer d-flex flex-column" :class="$attrs.class" @keydown="onKeyDown" tabindex="0">
+  <div class="jrxml-viewer d-flex flex-column" :class="$attrs.class" tabindex="0" @keydown="onKeyDown">
     <component :is="'style'">{{ pageStyleTag }}</component>
     <!-- error alert moved to canvas panel below -->
 
@@ -27,7 +28,6 @@
           <button class="dropdown-item" type="button" @click="report.continuous.value = false">{{ t('singlePage') }}</button>
         </div>
       </div>
-
     </header>
 
     <div class="jrxml-canvas flex-fill" role="main" aria-label="Report content">
@@ -36,7 +36,7 @@
           <div class="skeleton-line skeleton-line-lg" style="width: 60%" />
           <div class="skeleton-line" style="width: 40%" />
           <div class="skeleton-spacer" />
-          <div class="skeleton-line" style="width: 100%" v-for="i in 8" :key="i" />
+          <div v-for="i in 8" :key="i" class="skeleton-line" style="width: 100%" />
         </div>
       </div>
       <div v-else-if="report.error.value" class="jrxml-error-panel">

@@ -17,7 +17,7 @@ const loading = ref(true);
 
 const fetchDetail = async () => {
   loading.value = true;
-  const res = await useApi<{ data: GoodsReceiptDetail }>(`/goods-receipts/${id}`);
+  const res = await useApi<{ data: GoodsReceiptDetail }>(`/purchasing/goods-receipts/${id}`);
   if (res.data?.data) {
     gr.value = res.data.data;
     title.value = `GR #${gr.value.gr_number}`;
@@ -59,7 +59,7 @@ const openCancelModal = () => {
 };
 
 const handleConfirm = async () => {
-  const res = await submitForm(`/goods-receipts/${id}/confirm`, {
+  const res = await submitForm(`/purchasing/goods-receipts/${id}/confirm`, {
     method: "POST",
     body: {},
     successMessage: "Penerimaan barang berhasil dikonfirmasi dan stok telah bertambah!",
@@ -71,7 +71,7 @@ const handleConfirm = async () => {
 };
 
 const handleCancel = async () => {
-  const res = await submitForm(`/goods-receipts/${id}/cancel`, {
+  const res = await submitForm(`/purchasing/goods-receipts/${id}/cancel`, {
     method: "POST",
     body: { reason: cancelReason.value },
     successMessage: "Penerimaan barang berhasil dibatalkan!",
@@ -95,7 +95,7 @@ const handleCancel = async () => {
         <template v-if="gr">
           <NuxtLink
             v-if="gr.status === 'DRAFT'"
-            :to="`/goods-receipt/form?id=${gr.id}`"
+            :to="gr.purchase_order_id && gr.purchase_order_id !== '00000000-0000-0000-0000-000000000000' ? `/goods-receipt/form?id=${gr.id}` : `/goods-receipt/create-direct?id=${gr.id}`"
             class="btn btn-warning rounded-1"
           >
             <Icon name="i-tabler:pencil" class="icon icon-2 me-1" />

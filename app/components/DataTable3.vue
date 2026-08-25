@@ -267,8 +267,8 @@ if (data.value) {
                 v-if="search"
                 class="position-absolute top-50 translate-middle-y end-0 me-3 text-muted d-flex align-items-center justify-content-center"
                 style="cursor: pointer;"
-                @click="search = ''"
                 title="Clear search"
+                @click="search = ''"
               >
                 <Icon name="i-tabler:x" />
               </span>

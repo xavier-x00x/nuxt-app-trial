@@ -371,9 +371,9 @@ const onSubmit = async () => {
   };
 
   if (isEdit.value) {
-    await submitForm(`/master-data/${props.id}`, { method: "PUT", body: dataPayload });
+    await submitForm(`/system/proposals/${props.id}`, { method: "PUT", body: dataPayload });
   } else {
-    await submitForm("/master-data", { method: "POST", body: dataPayload });
+    await submitForm("/system/proposals", { method: "POST", body: dataPayload });
   }
   if (success.value) navigateTo(props.basePath);
 };
@@ -417,7 +417,7 @@ const onSubmit = async () => {
                   v-model:display-value="item.entity_text"
                   v-model:selected-data="item._selected_obj"
                   value-key="id"
-                  api-url="/suppliers/pagination"
+                  api-url="/purchasing/suppliers/pagination"
                   xname="entity_id"
                   placeholder="Ketik untuk mencari..."
                   :clearable="true"
@@ -440,26 +440,25 @@ const onSubmit = async () => {
               <!-- CREATE & UPDATE Dynamic Fields -->
               <template v-if="proposalType === 'CREATE' || (proposalType === 'UPDATE' && item.entity_id)">
                 <!-- Tabs Navigation -->
-                <ul class="nav nav-tabs" :id="`supplier-tab-${idx}`" role="tablist">
+                <ul :id="`supplier-tab-${idx}`" class="nav nav-tabs" role="tablist">
                   <li class="nav-item" role="presentation">
-                    <button class="nav-link active" :id="`info-tab-${idx}`" data-bs-toggle="tab" :data-bs-target="`#info-${idx}`" type="button" role="tab" :aria-controls="`info-${idx}`" aria-selected="true">Info Utama</button>
+                    <button :id="`info-tab-${idx}`" class="nav-link active" data-bs-toggle="tab" :data-bs-target="`#info-${idx}`" type="button" role="tab" :aria-controls="`info-${idx}`" aria-selected="true">Info Utama</button>
                   </li>
                   <li class="nav-item" role="presentation">
-                    <button class="nav-link" :id="`kontak-tab-${idx}`" data-bs-toggle="tab" :data-bs-target="`#kontak-${idx}`" type="button" role="tab" :aria-controls="`kontak-${idx}`" aria-selected="false">Kontak & Alamat</button>
+                    <button :id="`kontak-tab-${idx}`" class="nav-link" data-bs-toggle="tab" :data-bs-target="`#kontak-${idx}`" type="button" role="tab" :aria-controls="`kontak-${idx}`" aria-selected="false">Kontak & Alamat</button>
                   </li>
                   <li class="nav-item" role="presentation">
-                    <button class="nav-link" :id="`pembayaran-tab-${idx}`" data-bs-toggle="tab" :data-bs-target="`#pembayaran-${idx}`" type="button" role="tab" :aria-controls="`pembayaran-${idx}`" aria-selected="false">Pembayaran</button>
+                    <button :id="`pembayaran-tab-${idx}`" class="nav-link" data-bs-toggle="tab" :data-bs-target="`#pembayaran-${idx}`" type="button" role="tab" :aria-controls="`pembayaran-${idx}`" aria-selected="false">Pembayaran</button>
                   </li>
                   <li class="nav-item" role="presentation">
-                    <button class="nav-link" :id="`bank-tab-${idx}`" data-bs-toggle="tab" :data-bs-target="`#bank-${idx}`" type="button" role="tab" :aria-controls="`bank-${idx}`" aria-selected="false">Rekening Bank</button>
+                    <button :id="`bank-tab-${idx}`" class="nav-link" data-bs-toggle="tab" :data-bs-target="`#bank-${idx}`" type="button" role="tab" :aria-controls="`bank-${idx}`" aria-selected="false">Rekening Bank</button>
                   </li>
                 </ul>
 
                 <!-- Tabs Content -->
-                <div class="tab-content pt-3" :id="`supplier-tab-content-${idx}`">
-                  
+                <div :id="`supplier-tab-content-${idx}`" class="tab-content pt-3">
                   <!-- Tab: Info Utama -->
-                  <div class="tab-pane fade show active" :id="`info-${idx}`" role="tabpanel" :aria-labelledby="`info-tab-${idx}`">
+                  <div :id="`info-${idx}`" class="tab-pane fade show active" role="tabpanel" :aria-labelledby="`info-tab-${idx}`">
                     <div class="row g-3">
                       <div class="col-md-6">
                         <ui-input2 v-model="item.code" label="Code *" type="text" placeholder="Input Code" />
@@ -474,7 +473,7 @@ const onSubmit = async () => {
                           v-model:display-value="item.supplier_category_id_text"
                           v-model:selected-data="item.supplier_category_id_obj"
                           value-key="id"
-                          api-url="/supplier-categories/pagination"
+                          api-url="/purchasing/supplier-categories/pagination"
                           xname="supplier_category_id"
                           placeholder="Select Supplier Category"
                           :clearable="true"
@@ -495,7 +494,7 @@ const onSubmit = async () => {
                   </div>
 
                   <!-- Tab: Kontak & Alamat -->
-                  <div class="tab-pane fade" :id="`kontak-${idx}`" role="tabpanel" :aria-labelledby="`kontak-tab-${idx}`">
+                  <div :id="`kontak-${idx}`" class="tab-pane fade" role="tabpanel" :aria-labelledby="`kontak-tab-${idx}`">
                     <div class="row g-3">
                       <div class="col-md-6">
                         <ui-input2 v-model="item.contact_person" label="Contact Person" type="text" placeholder="Input Contact Person" />
@@ -525,7 +524,7 @@ const onSubmit = async () => {
                   </div>
 
                   <!-- Tab: Pembayaran -->
-                  <div class="tab-pane fade" :id="`pembayaran-${idx}`" role="tabpanel" :aria-labelledby="`pembayaran-tab-${idx}`">
+                  <div :id="`pembayaran-${idx}`" class="tab-pane fade" role="tabpanel" :aria-labelledby="`pembayaran-tab-${idx}`">
                     <div class="row g-3">
                       <div class="col-md-6">
                         <label class="form-label">AP Account </label>
@@ -534,7 +533,7 @@ const onSubmit = async () => {
                           v-model:display-value="item.ap_account_id_text"
                           v-model:selected-data="item.ap_account_id_obj"
                           value-key="id"
-                          api-url="/accounts/query"
+                          api-url="/finance/accounts/query"
                           xname="ap_account_id"
                           placeholder="Select AP Account"
                           :clearable="true"
@@ -558,7 +557,7 @@ const onSubmit = async () => {
                   </div>
 
                   <!-- Tab: Rekening Bank -->
-                  <div class="tab-pane fade" :id="`bank-${idx}`" role="tabpanel" :aria-labelledby="`bank-tab-${idx}`">
+                  <div :id="`bank-${idx}`" class="tab-pane fade" role="tabpanel" :aria-labelledby="`bank-tab-${idx}`">
                     <div class="row g-3">
                       <div class="col-md-12">
                         <ui-input2 v-model="item.bank_name" label="Bank Name" type="text" placeholder="e.g. BCA, Mandiri, BNI" />
@@ -571,7 +570,6 @@ const onSubmit = async () => {
                       </div>
                     </div>
                   </div>
-                  
                 </div>
               </template>
             </div>

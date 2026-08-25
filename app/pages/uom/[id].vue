@@ -24,7 +24,7 @@ const dataForm = ref<UOM>({
 });
 
 if (id.value !== "new") {
-  const { data: resp, error } = await useApiFetch<UOMResponse>(`/uoms/${id.value}`);
+  const { data: resp, error } = await useApiFetch<UOMResponse>(`/catalog/uoms/${id.value}`);
   if (error.value || !resp.value) {
     setFlash("Data UOM tidak ditemukan", "error");
     navigateTo("/uom");
@@ -36,7 +36,7 @@ if (id.value !== "new") {
 const form = ref<HTMLFormElement>();
 const { loading, success, errors, formatError, submitForm } = useForm2();
 
-const { url: submitUrl, method: submitMethod } = useResource("uoms", id);
+const { url: submitUrl, method: submitMethod } = useResource("catalog/uoms", id);
 
 const onSubmit = async () => {
   await submitForm(submitUrl.value, {
